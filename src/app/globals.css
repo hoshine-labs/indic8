@@ -1,0 +1,500 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* LIGHT MODE (Perfected & Untouched) */
+  --color-brand-primary: #111111;
+  --color-brand-secondary: #666666;
+  --color-brand-muted: #888888;
+  --color-brand-disabled: #CCCCCC;
+  --color-brand-dark: #444444;
+  --color-brand-darker: #333333;
+  --color-brand-darkest: #222222;
+
+  --color-surface-canvas: #F8F8F8;
+  --color-surface-subtle: #FAFAFA;
+  --color-surface-base: #FFFFFF;
+  --color-surface-ghost: #F0F0F0;
+  --color-surface-light: #F5F5F5;
+  --color-surface-gray: #F3F4F6;
+  --color-surface-sidebar: #EDEDED;
+  --color-surface-tab-active: #EFEFEF;
+  --color-surface-gold-light: #FFF8E7;
+
+  --color-border-default: #E5E5E5;
+  --color-border-slate: #CBD5E1;
+  --color-border-orange-light: #FFE0CC;
+  --color-border-light: #E0E0E0;
+  --color-border-hover: #C0C0C0;
+  --color-border-muted: #D5D5D5;
+  --color-border-highlight: #FFFFFF;
+  --color-border-shadow: #E0E0E0;
+
+  --color-canvas-dots: #D5D5D5;
+  --color-canvas-stroke: #94A3B8;
+
+  --color-status-success: #008A44;
+  --color-status-success-light: #E5F6EE;
+  --color-status-danger: #D92D20;
+  --color-status-warning: #FF6B6B;
+  --color-status-premium: #D4AF37;
+  --color-status-premium-light: #FFE4A0;
+  --color-status-orange-dark: #B54708;
+  --color-status-orange-light-bg: #FFF0E5;
+  --color-status-orange-primary: #FF8A3D;
+  --color-accent-primary: #FF8A3D;
+  --color-status-bronze: #CD7F32;
+  --color-status-danger-subtle: #FEECEB;
+  --color-status-danger-subtler: #FEF3F2;
+  --color-status-blue-light: #EFF6FF;
+
+  /* FOLDER SPECIFIC COLORS (Light Mode) */
+  --folder-back-start: #F0EFEF;
+  --folder-back-end: #CACACA;
+  --folder-front-start: #F3F3F3;
+  --folder-front-end: #E2E2E2;
+  --folder-stroke: #D0D0D0;
+
+  --folder-doc-bg: #181818;
+  --folder-doc-stroke: #B0B0B0;
+  --folder-doc-inner: #FFFFFF;
+
+  --folder-emboss-fill: rgba(0, 0, 0, 0.12);
+  --folder-emboss-stroke: rgba(255, 255, 255, 0.5);
+
+  --color-folder-bg: #FFFFFF;
+  --color-folder-hover: #F8F8F8;
+  --color-folder-border-hover: #C0C0C0;
+}
+
+@layer base {
+  :root {
+    --background: #0f0e0d;
+    --foreground: #ede8e3;
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: #0f0e0d;
+    color-scheme: dark;
+  }
+
+  html:not(.dark) {
+    --background: #F8F8F8;
+    --foreground: #111111;
+    background-color: #F8F8F8;
+    color-scheme: light;
+  }
+
+  .dark {
+    /* TAUPE 950 DARK THEME (Sophisticated Obsidian Taupe with Sunlit Amber Accent) */
+    --background: #0f0e0d;
+    --foreground: #ede8e3;
+
+    --color-brand-primary: #ede8e3;
+    --color-brand-secondary: #a89f97;
+    --color-brand-muted: #786e66;
+    --color-brand-disabled: #4a443e;
+    --color-brand-dark: #d4cbc3;
+    --color-brand-darker: #ede8e3;
+    --color-brand-darkest: #ffffff;
+
+    /* Surface Hierarchy (Taupe 950 to 750) */
+    --color-surface-canvas: #0f0e0d; /* Taupe 950 */
+    --color-surface-sidebar: #151312; /* Taupe 900 */
+    --color-surface-base: #1b1917; /* Taupe 850 */
+    --color-surface-subtle: #23201d; /* Taupe 800 */
+    --color-surface-light: #2b2724; /* Taupe 750 */
+    --color-surface-gray: #332f2b;
+    --color-surface-ghost: #272421;
+    --color-surface-tab-active: #24201c;
+    --color-surface-gold-light: #2e2417;
+
+    /* Border Hierarchy */
+    --color-border-default: #2c2825; /* Taupe 700 */
+    --color-border-slate: #36312d;
+    --color-border-orange-light: #4a2810;
+    --color-border-light: #332f2b;
+    --color-border-hover: #47403a;
+    --color-border-muted: #211e1c;
+
+    --color-border-highlight: #3a342f;
+    --color-border-shadow: #0a0909;
+
+    --color-canvas-dots: #38332f;
+    --color-canvas-stroke: rgba(237, 232, 227, 0.08);
+
+    /* Chart & Accent Tokens */
+    --color-accent-primary: #e59b4c;
+    --color-accent-bright: #f59e0b;
+    --color-accent-glow: rgba(229, 155, 76, 0.22);
+    --color-chart-stroke: #e59b4c;
+    --color-chart-gradient-start: rgba(229, 155, 76, 0.28);
+    --color-chart-gradient-end: rgba(229, 155, 76, 0.0);
+    --color-chart-grid: rgba(255, 255, 255, 0.05);
+    --color-chart-axis: #8c827a;
+
+    /* Dark Mode Status Colors */
+    --color-status-success: #34D399;
+    --color-status-success-light: #064E3B;
+    --color-status-danger: #EF4444;
+    --color-status-warning: #FBBF24;
+    --color-status-premium: #FBBF24;
+    --color-status-premium-light: #45330B;
+    --color-status-orange-dark: #F97316;
+    --color-status-orange-light-bg: #431D0A;
+    --color-status-orange-primary: #FB923C;
+    --color-status-bronze: #F59E0B;
+    --color-status-danger-subtle: #451A1A;
+    --color-status-danger-subtler: #2A0F0F;
+    --color-status-blue-light: #1E3A8A;
+
+    /* FOLDER SPECIFIC COLORS (Dark Mode) */
+    --folder-back-start: #23201d;
+    --folder-back-end: #151312;
+    --folder-front-start: #3b3632;
+    --folder-front-end: #2c2825;
+    --folder-stroke: #574f4a;
+
+    --folder-doc-bg: #ede8e3;
+    --folder-doc-stroke: #a89f97;
+    --folder-doc-inner: #151312;
+
+    --folder-emboss-fill: rgba(0, 0, 0, 0.35);
+    --folder-emboss-stroke: rgba(237, 232, 227, 0.1);
+
+    --color-folder-bg: #0f0e0d;
+    --color-folder-hover: #151312;
+    --color-folder-border-hover: #47403a;
+  }
+
+  .dark svg circle[fill="#111111"] {
+    fill: #EDEDED !important;
+  }
+
+  .dark svg path[fill="#111111"] {
+    fill: #EDEDED !important;
+  }
+
+  /* Vector Map Tooltip Overrides */
+  .jvm-tooltip {
+    position: absolute !important;
+    display: none !important;
+    pointer-events: none !important;
+    z-index: 99999 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    white-space: normal !important;
+  }
+
+  .jvm-tooltip.active {
+    display: block !important;
+  }
+
+  html {
+    font-size: 14.4px;
+    /* 90% scale mapping to rem */
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Unified Full-Page Hardware View Transition Crossfade (All components switch simultaneously) */
+  ::view-transition-group(root) {
+    animation-duration: 250ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  ::view-transition-image-pair(root) {
+    isolation: isolate;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 250ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    mix-blend-mode: normal;
+    height: 100%;
+    overflow: clip;
+  }
+
+  ::view-transition-old(root) {
+    animation-name: vt-fade-out;
+  }
+
+  ::view-transition-new(root) {
+    animation-name: vt-fade-in;
+  }
+
+  @keyframes vt-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes vt-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Disable sub-element CSS transitions during snapshot capture so all nodes reach their final theme state synchronously */
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: none !important;
+  }
+
+  /* Universal smooth synchronized fade fallback for browsers without View Transitions */
+  html.theme-fade-fallback,
+  html.theme-fade-fallback *,
+  html.theme-fade-fallback *::before,
+  html.theme-fade-fallback *::after {
+    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                color 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                fill 250ms cubic-bezier(0.4, 0, 0.2, 1),
+                stroke 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .sidebar-layout-transition {
+    transition-property: width, max-width, transform, translate, scale, opacity;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Force sliding layout rules via HTML attribute to prevent FOUC on initial load */
+  html[data-sidebar-layout="sliding"]:not([data-sidebar-expanded="true"]) .sidebar-spacer {
+    width: 0 !important;
+  }
+
+  html[data-sidebar-layout="sliding"]:not([data-sidebar-expanded="true"]) .sidebar-aside {
+    width: 0 !important;
+    border-right-width: 0 !important;
+  }
+
+  /* Mobile: Always show logo, always hide breadcrumbs */
+  @media (max-width: 767px) {
+    .header-logo {
+      display: flex !important;
+    }
+
+    .header-breadcrumbs {
+      display: none !important;
+    }
+  }
+
+  /* Desktop: Respect sidebar layout preferences */
+  @media (min-width: 768px) {
+    html[data-sidebar-layout="sliding"] .header-logo {
+      display: flex !important;
+    }
+
+    html[data-sidebar-layout="collapsible"] .header-logo {
+      display: none !important;
+    }
+
+    html[data-sidebar-layout="sliding"] .header-breadcrumbs {
+      display: none !important;
+    }
+
+    html[data-sidebar-layout="collapsible"] .header-breadcrumbs {
+      display: flex !important;
+    }
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-light);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-hover);
+  }
+
+  /* Remove all shadows globally */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Selection Color */
+  ::selection {
+    background-color: var(--color-border-highlight);
+    color: var(--color-brand-primary);
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-border-highlight);
+    color: var(--color-brand-primary);
+  }
+
+  @keyframes flow-conveyor {
+    0% {
+      stroke-dashoffset: 0;
+    }
+
+    100% {
+      stroke-dashoffset: -300;
+    }
+  }
+
+  .animate-flow-conveyor {
+    animation: flow-conveyor 2s linear infinite;
+  }
+}
+
+@keyframes shimmer-mask-core {
+  0% {
+    stroke-dashoffset: 300;
+  }
+
+  100% {
+    stroke-dashoffset: -1200;
+  }
+}
+
+@keyframes shimmer-mask-soft {
+  0% {
+    stroke-dashoffset: 375;
+  }
+
+  100% {
+    stroke-dashoffset: -1125;
+  }
+}
+
+.animate-shimmer-core {
+  stroke-dasharray: 150 2000;
+  animation: shimmer-mask-core 1.2s cubic-bezier(0.2, 0, 0.1, 1) forwards;
+}
+
+.animate-shimmer-soft {
+  stroke-dasharray: 300 2000;
+  animation: shimmer-mask-soft 1.2s cubic-bezier(0.2, 0, 0.1, 1) forwards;
+}
+
+@keyframes edge-flow-shimmer {
+  to {
+    stroke-dashoffset: calc(var(--cycle-length, 300) * -1);
+  }
+}
+
+.edge-anim-core, .edge-anim-soft {
+  animation: edge-flow-shimmer var(--animation-duration, 2s) linear infinite;
+}
+
+/* Material 3 Expressive Loader */
+.m3-loader {
+  width: var(--m3-size, 48px);
+  height: var(--m3-size, 48px);
+  animation: m3-spin 2s linear infinite;
+}
+
+.m3-loader svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* Start at 12 o'clock */
+}
+
+.m3-arc {
+  fill: none;
+  stroke-width: var(--m3-stroke-width, 5px);
+  stroke-linecap: round;
+  animation-duration: 2s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-iteration-count: infinite;
+}
+
+.m3-arc-active {
+  stroke: var(--color-brand-primary, #d7c4b7);
+  animation-name: m3-active-morph;
+}
+
+.m3-arc-track {
+  stroke: var(--color-border-default, #3e3833);
+  animation-name: m3-track-morph;
+}
+
+@keyframes m3-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes m3-active-morph {
+  0% {
+    stroke-dasharray: 18 107.66;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 83.66 42;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 18 107.66;
+    stroke-dashoffset: -125.66;
+  }
+}
+
+@keyframes m3-track-morph {
+  0% {
+    stroke-dasharray: 83.66 42;
+    stroke-dashoffset: -30;
+  }
+  50% {
+    stroke-dasharray: 18 107.66;
+    stroke-dashoffset: -95.66;
+  }
+  100% {
+    stroke-dasharray: 83.66 42;
+    stroke-dashoffset: -155.66;
+  }
+}
+
+/* Custom Sleek Rounded Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-default, rgba(255, 255, 255, 0.12));
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-muted, rgba(255, 255, 255, 0.25));
+}
+
+/* EvilCharts Smooth Text Transitions */
+.recharts-cartesian-axis-tick text {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
