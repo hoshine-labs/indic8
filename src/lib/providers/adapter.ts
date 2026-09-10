@@ -172,6 +172,45 @@ export class LemonSqueezyAdapter extends BaseProviderAdapter {
   };
 }
 
+export class DodoPaymentsAdapter extends BaseProviderAdapter {
+  readonly id = "dodopayments" as const;
+  readonly name = "Dodo Payments";
+  readonly defaultCapabilities: ProviderCapabilities = {
+    supportsRevenue: true,
+    supportsSubscriptions: true,
+    supportsMRR: true,
+    supportsRefunds: true,
+    supportsCustomers: true,
+    supportsCountries: true,
+  };
+}
+
+export class PaddleAdapter extends BaseProviderAdapter {
+  readonly id = "paddle" as const;
+  readonly name = "Paddle";
+  readonly defaultCapabilities: ProviderCapabilities = {
+    supportsRevenue: true,
+    supportsSubscriptions: true,
+    supportsMRR: true,
+    supportsRefunds: true,
+    supportsCustomers: true,
+    supportsCountries: true,
+  };
+}
+
+export class CreemAdapter extends BaseProviderAdapter {
+  readonly id = "creem" as const;
+  readonly name = "Creem";
+  readonly defaultCapabilities: ProviderCapabilities = {
+    supportsRevenue: true,
+    supportsSubscriptions: true,
+    supportsMRR: true,
+    supportsRefunds: true,
+    supportsCustomers: true,
+    supportsCountries: true,
+  };
+}
+
 export const PROVIDER_ADAPTERS: Record<ProviderId, PaymentProviderAdapter> = {
   stripe: new StripeAdapter(),
   polar: new PolarAdapter(),
@@ -179,4 +218,7 @@ export const PROVIDER_ADAPTERS: Record<ProviderId, PaymentProviderAdapter> = {
   app_store: new AppStoreAdapter(),
   google_play: new GooglePlayAdapter(),
   lemonsqueezy: new LemonSqueezyAdapter(),
+  dodopayments: new DodoPaymentsAdapter(),
+  paddle: new PaddleAdapter(),
+  creem: new CreemAdapter(),
 };
