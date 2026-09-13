@@ -1,64 +1,128 @@
 ---
 title: "Google Play Setup Guide"
-description: "Connect Android in-app purchases and subscriptions using Google Cloud Pub/Sub."
+description: "Complete step-by-step guide to connect Google Play Developer API, Google Cloud IAM service account, and financial reports to Indic8."
 ---
 
-Connect Google Play Real-Time Developer Notifications (RTDN) to ingest Android in-app purchases and recurring subscriptions.
+Connect your Google Play Console account to stream Android in-app purchases, paid app downloads, recurring subscriptions, and refunds into Indic8.
 
-## What You Need
+## What You Need to Connect
 
-| Item | Where to get it | Purpose |
+To connect Google Play to Indic8, you will need 3 pieces of information:
+
+| Credential | Where to find it | Description |
 | :--- | :--- | :--- |
-| **Indic8 Google Ingress URL** | Indic8 Dashboard > Settings > Integrations > Google Play | The push endpoint for Google Cloud Pub/Sub |
-| **Google Cloud Pub/Sub Topic** | Google Cloud Console | Receives real-time events from Google Play |
+| **Service Account JSON Key** | Google Cloud Console > IAM > Service Accounts | Grants secure read-only access to query orders and subscriptions |
+| **App Package Name** | Google Play Console | Your Android application ID (e.g. `com.company.app`) |
+| **GCS Reports Bucket ID** *(Optional)* | Google Play Console > Download Reports > Financial | Ingests historical monthly financial CSV reports |
 
 ---
 
-## Step 1: Create a Google Cloud Pub/Sub Topic
+## Part 1: Enable Google Play Android Developer API in Google Cloud
 
-1. Open the [Google Cloud Console](https://console.cloud.google.com).
-2. Ensure you have selected the project linked to your Google Play Console.
-3. In the search bar, type `Pub/Sub` and open **Topics**.
-4. Click **Create Topic**.
-5. Set Topic ID to: `indic8-rtdn-topic`.
-6. Click **Create**.
+<Steps>
+  <Step title="Open Google Cloud Console">
+    Go to the [Google Cloud Console](https://console.cloud.google.com) and make sure you are logged in with the owner account of your Google Play developer organization.
+  </Step>
+
+  <Step title="Select or Create your Linked Project">
+    Select the Google Cloud project linked to your Google Play Console account from the project dropdown at the top of the page.
+  </Step>
+
+  <Step title="Enable the Google Play Android Developer API">
+    1. In the left navigation menu, go to **APIs & Services > Library**.
+    2. In the search bar, search for: `Google Play Android Developer API`.
+    3. Click on the API result.
+    4. Click the blue **Enable** button.
+  </Step>
+</Steps>
 
 ---
 
-## Step 2: Grant Google Play Permission to Publish
+## Part 2: Create a Service Account and Download JSON Key
 
-1. On your newly created topic page, click the **Permissions** tab on the right side.
-2. Click **Add Principal**.
-3. In **New principals**, enter:
+<Steps>
+  <Step title="Go to Service Accounts in Cloud Console">
+    In the left navigation menu, go to **IAM & Admin > Service Accounts**.
+  </Step>
+
+  <Step title="Create Service Account">
+    1. Click the **+ Create Service Account** button at the top.
+    2. In **Service account name**, enter: `indic8-sync`.
+    3. In **Service account ID**, it will auto-populate (e.g. `indic8-sync@your-project-id.iam.gserviceaccount.com`).
+    4. In **Description**, enter: `Read-only financial sync for Indic8`.
+    5. Click **Create and Continue**.
+  </Step>
+
+  <Step title="Grant Cloud Storage Access (Optional for historical CSV reports)">
+    Under **Grant this service account access to project**, select:
+    - **Role**: `Storage Object Viewer` (or `Basic > Viewer`)
+    Click **Continue**, then click **Done**.
+  </Step>
+
+  <Step title="Create and Download the JSON Private Key">
+    1. In the Service Accounts list, click on your newly created service account email (`indic8-sync@...`).
+    2. Click the **Keys** tab near the top.
+    3. Click **Add Key > Create new key**.
+    4. Select **JSON** as the key type.
+    5. Click **Create**. A JSON key file will immediately download to your computer.
+    6. Keep this JSON file safe. You will upload it into Indic8.
+  </Step>
+</Steps>
+
+---
+
+## Part 3: Invite the Service Account into Google Play Console
+
+Google Cloud service accounts cannot access your Google Play sales data until you invite the email address inside the Google Play Console with the proper financial permissions.
+
+<Steps>
+  <Step title="Open Google Play Console Users & Permissions">
+    1. Log in to the [Google Play Console](https://play.google.com/console).
+    2. In the left sidebar, scroll down to the **Settings** group and click **Users & permissions**.
+  </Step>
+
+  <Step title="Invite New User">
+    1. Click the blue **Invite new users** button in the top right.
+    2. In the **Email address** box, paste the service account email from Part 2 (e.g. `indic8-sync@your-project.iam.gserviceaccount.com`).
+  </Step>
+
+  <Step title="Set Account Permissions (Required for Revenue & Subscriptions)">
+    Click on the **Account permissions** tab and check the boxes for:
+
+    | Permission Name | Required | Why it is needed |
+    | :--- | :--- | :--- |
+    | **View financial data, orders, and cancellation survey responses** | **Yes** | Allows Indic8 to read purchase amounts, sales taxes, and currency totals |
+    | **Manage orders and subscriptions** | **Yes** | Allows Indic8 Developer API to verify subscription active status |
+    | **View app information and download bulk reports (read-only)** | **Yes** | Allows downloading daily and monthly sales aggregated summaries |
+
+  </Step>
+
+  <Step title="Send Invitation">
+    Click **Invite user** at the bottom right, then click **Send invitation**. The service account will be added immediately with active permissions.
+  </Step>
+</Steps>
+
+---
+
+## Part 4: Find your Cloud Storage Reports Bucket ID (Optional)
+
+If you want Indic8 to parse past historical sales reports:
+
+1. In Google Play Console, go to **Download reports > Financial**.
+2. Near the top of the screen, locate the Cloud Storage URI. It looks like:
    ```text
-   google-play-developer-notifications@system.gserviceaccount.com
+   gs://pubsite_prod_rev_01234567890123456789/earnings/
    ```
-4. In **Select a role**, choose **Pub/Sub Publisher**.
-5. Click **Save**.
+3. Copy the bucket ID: `pubsite_prod_rev_01234567890123456789`.
 
 ---
 
-## Step 3: Create a Push Subscription
+## Part 5: Connect inside Indic8
 
-1. In Pub/Sub, go to **Subscriptions** in the left menu.
-2. Click **Create Subscription**.
-3. Set Subscription ID to: `indic8-rtdn-sub`.
-4. Select the topic: `projects/your-project/topics/indic8-rtdn-topic`.
-5. Under **Delivery type**, select **Push**.
-6. In **Endpoint URL**, paste the URL from Indic8 (**Settings > Integrations > Google Play**).
-7. Leave all other settings as default and click **Create**.
+1. Open your [Indic8 Dashboard](https://app.indic8.ing) and go to **Settings > Integrations > Google Play**.
+2. Upload or paste the contents of your downloaded **Service Account JSON Key**.
+3. Enter your Android **Package Name** (e.g. `com.company.app`).
+4. (Optional) Paste your **GCS Reports Bucket ID**.
+5. Click **Connect Google Play**.
 
----
-
-## Step 4: Link Topic in Google Play Console
-
-1. Open the [Google Play Console](https://play.google.com/console).
-2. Select your Android App.
-3. In the left menu, scroll down to **Monetize > Monetization setup**.
-4. Scroll to **Real-time developer notifications**.
-5. In **Topic name**, enter your full Pub/Sub path:
-   ```text
-   projects/your-gcp-project-id/topics/indic8-rtdn-topic
-   ```
-6. Click **Send test notification** to verify the connection.
-7. Click **Save changes** at the bottom of the screen.
+Indic8 will test the credentials and start syncing your Android in-app sales and subscription revenue.

@@ -1,69 +1,86 @@
 ---
 title: "Polar Setup Guide"
-description: "Step-by-step instructions to connect Polar.sh products, tiers, and funding to Indic8."
+description: "Step-by-step guide to connect Polar.sh Organization Access Tokens (OAT), products, and webhooks to Indic8."
 ---
 
-Connect Polar to track developer sponsorships, software file sales, and subscription tiers.
+Connect Polar to track software product checkouts, recurring backer tiers, donations, and GitHub sponsorship revenue.
 
-## What You Need
+## What You Need to Connect
 
-| Item | Where to get it | Purpose |
+| Credential | Where to find it in Polar | Description |
 | :--- | :--- | :--- |
-| **Indic8 Webhook URL** | Indic8 Dashboard > Settings > Integrations > Polar | The destination URL for Polar events |
-| **Polar Webhook Secret** | Polar Dashboard > Settings > Webhooks | Verifies payload signature authenticity |
+| **Organization Access Token (OAT)** | Polar Dashboard > Settings > Organization > Developers | Direct read-only API access to fetch sales, subscriptions, and products |
+| **Webhook Secret Key** *(Optional)* | Polar Dashboard > Settings > Webhooks | Enables instant live transaction notifications |
 
 ---
 
-## Step 1: Copy your Indic8 Polar URL
+## Part 1: Generate a Polar Access Token (OAT or PAT)
 
-1. In your [Indic8 Dashboard](https://app.indic8.ing), click **Settings**.
-2. Click **Integrations**, then click **Polar**.
-3. Copy your unique Polar webhook URL:
-   ```text
-   https://api.indic8.ing/v1/webhooks/polar/whk_live_xxxxxxxx
-   ```
+Indic8 uses Polar's REST API to read your products, active subscriptions, and one-time order volume.
 
----
+<Steps>
+  <Step title="Log in to Polar.sh">
+    Open [Polar.sh](https://polar.sh/dashboard) and select your organization or creator profile.
+  </Step>
 
-## Step 2: Create Webhook in Polar.sh
+  <Step title="Navigate to Developers Settings">
+    1. In the left navigation, click **Settings**.
+    2. Under the **Developers** section, click **Access Tokens** (or **Personal Access Tokens**).
+  </Step>
 
-1. Log in to [Polar.sh](https://polar.sh/dashboard).
-2. Select your organization or personal profile from the top left dropdown.
-3. In the left sidebar, click **Settings**.
-4. Scroll down to the **Webhooks** section and click **Add Endpoint**.
-5. Paste your Indic8 URL into the **Endpoint URL** field.
-6. Under **Format**, keep the default `JSON`.
+  <Step title="Create New Access Token">
+    1. Click the button **Create Token** (or **Create Organization Access Token**).
+    2. Set the **Token Name** to: `Indic8 Analytics`.
+    3. Under **Expiration**, select your preferred duration (e.g. `No expiration` or `1 year`).
+  </Step>
 
----
+  <Step title="Select Required Permission Scopes">
+    Check the boxes for these read-only scopes:
 
-## Step 3: Select Polar Events
+    | Scope Name | Required | What it allows Indic8 to do |
+    | :--- | :--- | :--- |
+    | `orders:read` | **Yes** | Read one-time digital sales, checkouts, and customer country data |
+    | `subscriptions:read` | **Yes** | Read recurring pledges, tiers, active subscriber counts, and MRR |
+    | `products:read` | **Yes** | Read product titles, prices, and benefit tiers |
+    | `customers:read` | **Yes** | Read buyer order counts for repeat cohort retention |
 
-Check the boxes for these 6 events:
+  </Step>
 
-| Event Name | What it updates in Indic8 |
-| :--- | :--- |
-| `order.created` | One-time software purchases, product sales, and donations |
-| `order.refunded` | Customer refunds and charge deductions |
-| `subscription.created` | New recurring tier backers and subscription signups |
-| `subscription.updated` | Tier upgrades, tier downgrades, and price updates |
-| `subscription.canceled` | Canceled pledges (tracked as churn) |
-| `benefit_grant.created` | License key and GitHub benefit grants |
-
-Click **Save Endpoint**.
-
----
-
-## Step 4: Copy Secret into Indic8
-
-1. In your newly created Polar webhook page, click **Show Secret** to reveal the secret string.
-2. Copy this value.
-3. Return to Indic8 and paste it into the **Polar Secret** field.
-4. Click **Save & Connect**.
+  <Step title="Copy your Polar Token">
+    Click **Generate Token** and immediately copy the token (it starts with `polar_oat_...` or `polar_pat_...`).
+  </Step>
+</Steps>
 
 ---
 
-## Step 5: Test Connection
+## Part 2: Connect Token in Indic8
 
-1. On the Polar webhook details page, click **Send Test Event**.
-2. Pick `order.created` and click **Send**.
-3. Check your Indic8 overview page. You will see the event appear immediately in the live feed.
+1. Open your [Indic8 Dashboard](https://app.indic8.ing).
+2. Navigate to **Settings > Integrations > Polar**.
+3. Paste your token into the **Polar Access Token** input field.
+4. Click **Connect Polar**.
+
+Indic8 will validate the token against the Polar API and load your products and historical sales immediately.
+
+---
+
+## Part 3: Set up Real-Time Webhooks (Optional for Live Telemetry)
+
+To receive live transaction pushes the second a customer buys:
+
+<Steps>
+  <Step title="Copy Indic8 Webhook URL">
+    In Indic8 **Settings > Integrations > Polar**, copy your Webhook URL:
+    ```text
+    https://api.indic8.ing/v1/webhooks/polar/whk_live_xxxxxxxx
+    ```
+  </Step>
+
+  <Step title="Add Webhook in Polar">
+    1. In Polar Dashboard, go to **Settings > Webhooks**.
+    2. Click **Add Webhook Endpoint**.
+    3. Paste your Indic8 Webhook URL.
+    4. Subscribe to events: `order.created`, `order.refunded`, `subscription.created`, `subscription.updated`, and `subscription.canceled`.
+    5. Save and copy the **Webhook Secret** into Indic8.
+  </Step>
+</Steps>

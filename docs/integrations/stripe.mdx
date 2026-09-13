@@ -1,92 +1,97 @@
 ---
 title: "Stripe Setup Guide"
-description: "Step-by-step instructions to connect your Stripe account to Indic8 in 2 minutes."
+description: "Step-by-step guide to connect Stripe Restricted API Keys and Webhook events to Indic8."
 ---
 
-Follow this guide to connect Stripe. You will copy an endpoint URL from Indic8 into your Stripe Dashboard and copy back a webhook signing secret.
+Connect your Stripe account to stream one-time card charges, recurring subscriptions, invoices, and customer refunds into Indic8.
 
-## What You Need
+## What You Need to Connect
 
-| Item | Where to get it | Purpose |
+| Credential | Where to find it in Stripe | Description |
 | :--- | :--- | :--- |
-| **Indic8 Webhook URL** | Indic8 Dashboard > Settings > Integrations > Stripe | Tells Stripe where to send payment notifications |
-| **Stripe Signing Secret** | Stripe Dashboard > Developers > Webhooks | Verifies that incoming payment data is genuine |
-| **Stripe Restricted Key** *(Optional)* | Stripe Dashboard > Developers > API Keys | Imports historical past months data |
+| **Stripe Restricted API Key (RAK)** | Stripe Dashboard > Developers > API keys | Secure, read-only token to fetch historical and live charges, invoices, and plans |
+| **Webhook Signing Secret** *(Optional)* | Stripe Dashboard > Developers > Webhooks | Verifies live push events arriving at Indic8 |
 
 ---
 
-## Step 1: Get your Webhook URL from Indic8
+## Part 1: Create a Restricted API Key (Read-Only)
+
+We recommend using a **Restricted API Key (RAK)** rather than a standard secret key. A restricted key only grants read access to the specific resources Indic8 needs.
+
+<Steps>
+  <Step title="Open Stripe Developers Settings">
+    1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com).
+    2. Click **Developers** in the top right header.
+    3. In the left menu, click **API keys**.
+  </Step>
+
+  <Step title="Create Restricted Key">
+    1. Scroll down to the **Restricted keys** section.
+    2. Click the button **+ Create restricted key**.
+    3. In **Key name**, enter: `Indic8 Analytics Sync`.
+  </Step>
+
+  <Step title="Set Read Permissions">
+    Configure the following permissions to **Read**:
+
+    | Resource | Required Access | Why it is needed |
+    | :--- | :--- | :--- |
+    | **Charges** | `Read` | Reads one-time card payments, amounts, and fees |
+    | **Customer balance transactions** | `Read` | Reads credit balance adjustments |
+    | **Customers** | `Read` | Computes repeat customer retention and cohorts |
+    | **Disputes** | `Read` | Tracks chargebacks and disputed payments |
+    | **Invoices** | `Read` | Reads B2B invoice payments and renewal bills |
+    | **Plans & Products** | `Read` | Groups sales by product SKU and tier |
+    | **Subscriptions** | `Read` | Calculates MRR, ARR, renewals, and churn |
+
+    Leave all other resources set to `None`.
+  </Step>
+
+  <Step title="Save and Copy Key">
+    1. Click **Create key** at the bottom of the page.
+    2. Stripe will reveal your restricted key (starts with `rk_live_...`).
+    3. Copy this key to your clipboard.
+  </Step>
+</Steps>
+
+---
+
+## Part 2: Connect Key in Indic8
 
 1. Open your [Indic8 Dashboard](https://app.indic8.ing).
 2. Go to **Settings > Integrations > Stripe**.
-3. Click **Copy** next to your unique Webhook URL. It looks like:
-   ```text
-   https://api.indic8.ing/v1/webhooks/stripe/whk_live_xxxxxxxx
-   ```
+3. Paste your restricted key into the **Stripe Restricted API Key** field.
+4. Click **Connect Stripe**.
+
+Indic8 will immediately test the connection and begin syncing your Stripe products, active subscriptions, and charges.
 
 ---
 
-## Step 2: Add Webhook in Stripe Dashboard
+## Part 3: Set up Real-Time Webhooks (Optional)
 
-1. Open your [Stripe Dashboard](https://dashboard.stripe.com).
-2. In the top right navigation, click **Developers**.
-3. In the left menu, click **Webhooks**.
-4. Click the blue button **Add destination** (or **Add an endpoint**).
-5. In the **Endpoint URL** box, paste the URL you copied from Indic8 in Step 1.
-6. Under **Description**, you can enter `Indic8 Revenue Telemetry`.
+To receive instant transaction updates in under 2 seconds:
 
----
+<Steps>
+  <Step title="Copy Indic8 Webhook Endpoint">
+    In Indic8 **Settings > Integrations > Stripe**, copy your Webhook URL:
+    ```text
+    https://api.indic8.ing/v1/webhooks/stripe/whk_live_xxxxxxxx
+    ```
+  </Step>
 
-## Step 3: Select Required Webhook Events
-
-Click **Select events** and check the boxes for these 9 events:
-
-| Event Group | Event Name | What it updates in Indic8 |
-| :--- | :--- | :--- |
-| **Checkout** | `checkout.session.completed` | New customer purchases and checkouts |
-| **Charges** | `charge.succeeded` | Successful card payments |
-| **Charges** | `charge.refunded` | Customer refunds (deducted from net revenue) |
-| **Charges** | `charge.dispute.created` | Payment chargebacks and disputes |
-| **Subscriptions** | `customer.subscription.created` | New recurring monthly/yearly subscribers |
-| **Subscriptions** | `customer.subscription.updated` | Plan upgrades or downgrades |
-| **Subscriptions** | `customer.subscription.deleted` | Canceled subscriptions (churn tracking) |
-| **Invoices** | `invoice.paid` | Recurring subscription payments and B2B invoices |
-| **Invoices** | `invoice.payment_failed` | Failed renewal payments |
-
-Click **Add events** at the bottom of the dialog, then click **Add endpoint** to save.
-
----
-
-## Step 4: Copy Signing Secret into Indic8
-
-1. On the new webhook page you just created in Stripe, look for **Signing secret** on the right side.
-2. Click **Reveal**.
-3. Copy the secret key (it begins with `whsec_...`).
-4. Go back to your Indic8 tab, paste this string into the **Signing Secret** input box, and click **Save & Connect**.
-
----
-
-## Step 5: Verify the Connection
-
-1. In your Stripe Webhook page, click **Send test event** in the top right.
-2. Select `checkout.session.completed` and click **Send test webhook**.
-3. Open your Indic8 Dashboard. The test event will show up in your live activity stream within 2 seconds.
-
----
-
-## Importing Past Sales (Optional)
-
-If you want Indic8 to calculate MRR and sales history for past months:
-
-1. In Stripe, go to **Developers > API keys**.
-2. Under **Restricted keys**, click **Create restricted key**.
-3. Set key name to `Indic8 Read-Only`.
-4. Grant **Read** access to:
-   - `Charges` -> Read
-   - `Customer balance transactions` -> Read
-   - `Disputes` -> Read
-   - `Invoices` -> Read
-   - `Subscriptions` -> Read
-   - `Products` -> Read
-5. Click **Create key** and copy the secret (`rk_live_...`).
-6. Paste into Indic8 under **Historical Sync** and click **Start Import**.
+  <Step title="Add Endpoint in Stripe">
+    1. In Stripe, go to **Developers > Webhooks**.
+    2. Click **Add destination** (or **Add endpoint**).
+    3. Paste your Indic8 URL into **Endpoint URL**.
+    4. Click **Select events** and select:
+       - `checkout.session.completed`
+       - `charge.succeeded`
+       - `charge.refunded`
+       - `customer.subscription.created`
+       - `customer.subscription.updated`
+       - `customer.subscription.deleted`
+       - `invoice.paid`
+    5. Click **Add endpoint**.
+    6. Reveal the **Signing secret** (`whsec_...`) and paste it into Indic8.
+  </Step>
+</Steps>

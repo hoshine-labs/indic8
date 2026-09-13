@@ -1,69 +1,67 @@
 ---
 title: "RevenueCat Setup Guide"
-description: "Connect iOS, Android, and web in-app subscriptions from RevenueCat to Indic8."
+description: "Step-by-step guide to connect RevenueCat REST API v2 Keys and Webhooks to Indic8."
 ---
 
-Connect RevenueCat to stream mobile in-app purchase events, trial conversions, renewals, and cancellations into Indic8.
+Connect RevenueCat to consolidate mobile in-app purchases, iOS subscriptions, Android sales, and Stripe web payments in one place.
 
-## What You Need
+## What You Need to Connect
 
-| Item | Where to get it | Purpose |
+| Credential | Where to find it in RevenueCat | Description |
 | :--- | :--- | :--- |
-| **Indic8 Webhook Ingress URL** | Indic8 Dashboard > Settings > Integrations > RevenueCat | The webhook listener URL |
-| **Authorization Token** | Generated inside Indic8 settings modal | Verifies the request came from your RevenueCat project |
+| **RevenueCat Secret API Key** | Project Settings > API Keys | Used by Indic8 to query customer subscriber records and product entitlements |
+| **Webhook Authorization Header** | Generated in Indic8 settings | Verifies real-time push events from RevenueCat |
 
 ---
 
-## Step 1: Get Ingress URL & Token from Indic8
+## Part 1: Generate a RevenueCat Secret API Key
 
-1. In your [Indic8 Dashboard](https://app.indic8.ing), go to **Settings > Integrations**.
-2. Click **RevenueCat**.
-3. Copy both:
-   - **Webhook URL**: `https://api.indic8.ing/v1/webhooks/revenuecat/whk_live_xxxxxxxx`
-   - **Authorization Token**: A unique secret token string generated for your project.
+<Steps>
+  <Step title="Open RevenueCat Project Settings">
+    1. Log in to the [RevenueCat Dashboard](https://app.revenuecat.com).
+    2. Select your Project from the top navigation dropdown.
+    3. In the left sidebar, click the **Project Settings** (gear icon).
+  </Step>
 
----
+  <Step title="Navigate to API Keys">
+    1. Click **API Keys** in the settings submenu.
+    2. Look for the section titled **REST API v2 Keys** (or **v1 API Keys**).
+  </Step>
 
-## Step 2: Add Webhook in RevenueCat
-
-1. Open your [RevenueCat Dashboard](https://app.revenuecat.com).
-2. Select your App Project.
-3. In the left navigation, click **Project Settings** (gear icon).
-4. Click **Integrations** in the submenu, then select **Webhooks**.
-5. Click **+ Add Webhook** or **New Integration**.
-
----
-
-## Step 3: Fill in Webhook Settings
-
-| Field Name | What to enter |
-| :--- | :--- |
-| **Webhook URL** | Paste the Indic8 URL from Step 1 |
-| **Authorization Header Value** | Paste the Authorization Token from Step 1 |
-| **Environment** | Check **Production** (you can also check **Sandbox** for test mode) |
-| **Send Test Events** | Yes |
-
-Click **Save** in the bottom right corner.
+  <Step title="Create New Secret Key">
+    1. Click **+ Generate Key** (or **Create Key**).
+    2. Set **Key Name** to: `Indic8 Analytics Sync`.
+    3. Grant read permissions for project subscriber data.
+    4. Click **Generate Key**.
+    5. Copy the secret key (starts with `sk_...` or `rc_...`).
+  </Step>
+</Steps>
 
 ---
 
-## Step 4: Event Mapping Summary
+## Part 2: Connect Key in Indic8
 
-RevenueCat sends standard events that Indic8 categorizes automatically:
-
-| RevenueCat Event | How Indic8 counts it |
-| :--- | :--- |
-| `INITIAL_PURCHASE` | Added as a new sale and updates MRR |
-| `RENEWAL` | Realized recurring revenue (tracked on schedule) |
-| `PRODUCT_CHANGE` | Plan upgrade or downgrade adjustment |
-| `CANCELLATION` | Marked as scheduled cancellation |
-| `EXPIRATION` | Deducted from active subscribers and MRR |
-| `BILLING_ISSUE` | Past-due notice alert |
+1. In [Indic8](https://app.indic8.ing), go to **Settings > Integrations > RevenueCat**.
+2. Paste your Secret API Key into the **RevenueCat API Key** field.
+3. Click **Connect RevenueCat**.
 
 ---
 
-## Step 5: Verify Setup
+## Part 3: Set up Real-Time Webhooks
 
-1. In RevenueCat, click **Send Test Event**.
-2. Select `INITIAL_PURCHASE`.
-3. Open your Indic8 Live Feed to confirm the test transaction appears.
+<Steps>
+  <Step title="Copy Indic8 Webhook URL & Token">
+    In Indic8 **Settings > Integrations > RevenueCat**, copy:
+    - **Webhook URL**: `https://api.indic8.ing/v1/webhooks/revenuecat/whk_live_xxxxxxxx`
+    - **Authorization Token**: A generated authorization secret string.
+  </Step>
+
+  <Step title="Add Webhook in RevenueCat">
+    1. In RevenueCat, go to **Project Settings > Integrations > Webhooks**.
+    2. Click **+ Add Webhook**.
+    3. Paste your Indic8 Webhook URL.
+    4. In **Authorization Header Value**, paste your Authorization Token.
+    5. Check **Production** (and optionally **Sandbox** for Xcode Simulator test builds).
+    6. Click **Save**.
+  </Step>
+</Steps>

@@ -1,65 +1,76 @@
 ---
 title: "Apple App Store Setup Guide"
-description: "Direct connection with Apple App Store Server Notifications v2 for iOS and macOS purchases."
+description: "Step-by-step guide to connect App Store Connect API keys, Vendor Numbers, and Server Notifications v2 to Indic8."
 ---
 
-Connect your iOS or macOS apps directly using Apple App Store Server Notifications (V2).
+Connect your Apple Developer organization to sync iOS, iPadOS, and macOS in-app purchases, paid app downloads, auto-renewable subscriptions, and territory reports.
 
-## What You Need
+## What You Need to Connect
 
-| Item | Where to get it | Purpose |
+| Credential | Where to find it in App Store Connect | Description |
 | :--- | :--- | :--- |
-| **Indic8 Apple Ingress URL** | Indic8 Dashboard > Settings > Integrations > Apple | Endpoint where Apple sends signed notifications |
-| **App-Specific Shared Secret** | App Store Connect > App > In-App Purchases | Validates signed transaction receipts |
+| **App Store Connect Private Key (`.p8`)** | Users and Access > Integrations > API Keys | Cryptographic key file to download sales and subscription reports |
+| **Key ID** | Users and Access > Integrations > API Keys | 10-character identifier for your private key |
+| **Issuer ID** | Users and Access > Integrations > API Keys | UUID identifier for your Apple Developer organization |
+| **Vendor Number** | Reports > Sales and Trends | 8-digit account number (e.g. `85xxxxxx`) |
 
 ---
 
-## Step 1: Copy your Indic8 Apple URL
+## Part 1: Generate an App Store Connect API Key
 
-1. In [Indic8](https://app.indic8.ing), navigate to **Settings > Integrations > Apple App Store**.
-2. Copy your unique URL:
-   ```text
-   https://api.indic8.ing/v1/webhooks/appstore/whk_live_xxxxxxxx
-   ```
+<Steps>
+  <Step title="Log in to App Store Connect">
+    Open [App Store Connect](https://appstoreconnect.apple.com) and make sure you are logged in as an Account Holder or Admin.
+  </Step>
+
+  <Step title="Open API Keys Settings">
+    1. Click on **Users and Access** at the top.
+    2. Click on the **Integrations** tab (or **Keys** tab).
+    3. Under Key Type, select **App Store Connect API**.
+  </Step>
+
+  <Step title="Generate New Key">
+    1. Click the **+** button (or **Generate API Key**).
+    2. In **Name**, enter: `Indic8 Financial Sync`.
+    3. In **Access**, select **Finance** (or **Sales and Reports**).
+    4. Click **Generate**.
+  </Step>
+
+  <Step title="Download Private Key & Copy IDs">
+    1. Click **Download API Key** next to your new key. A file named `AuthKey_XXXXXXXXXX.p8` will download. (You can only download this file once).
+    2. Copy the **Key ID** column (10 characters, e.g. `2X9R4HXF3A`).
+    3. At the top of the page, copy your **Issuer ID** (UUID format, e.g. `57246542-96fe-1a63-e053-0824d011072a`).
+  </Step>
+</Steps>
 
 ---
 
-## Step 2: Open App Store Connect
+## Part 2: Find your Apple Vendor Number
 
-1. Log in to [App Store Connect](https://appstoreconnect.apple.com).
-2. Click **My Apps** and select your application.
-3. In the left menu under **General**, click **App Information**.
-4. Scroll down to the section titled **App Store Server Notifications**.
+1. In App Store Connect, click **Sales and Trends** (or **Reports**).
+2. Look at the top left dropdown selector near your account name.
+3. You will see an 8-digit number starting with `8` (for example, `85123456`). This is your **Vendor Number**.
 
 ---
 
-## Step 3: Enter URL and Version
+## Part 3: Connect inside Indic8
 
-1. In **Production Server URL**, click **Set Up URL** (or **Edit**).
-2. Paste the Indic8 URL you copied in Step 1.
-3. Under **Version**, select **Version 2 Notifications**.
-4. (Optional) Set the **Sandbox Server URL** to the same Indic8 URL to test purchases in Xcode Simulator.
+1. Open your [Indic8 Dashboard](https://app.indic8.ing) and go to **Settings > Integrations > Apple App Store**.
+2. Upload or paste your `AuthKey_XXXXXXXXXX.p8` private key file.
+3. Enter your **Key ID** and **Issuer ID**.
+4. Enter your 8-digit **Vendor Number**.
+5. Click **Connect Apple App Store**.
+
+Indic8 will verify your credentials and download historical sales and auto-renewable subscription telemetry.
+
+---
+
+## Part 4: Real-Time Server Notifications v2 (Optional)
+
+To receive instant trial conversions and renewal alerts:
+
+1. In App Store Connect, go to **My Apps > [Your App] > App Information**.
+2. Scroll down to **App Store Server Notifications**.
+3. In **Production Server URL**, paste your Indic8 Apple Webhook URL from **Settings > Integrations > Apple**.
+4. Set **Version** to **Version 2 Notifications**.
 5. Click **Save**.
-
----
-
-## Step 4: Add Shared Secret to Indic8
-
-1. In App Store Connect, go to **In-App Purchases > Manage**.
-2. Click **App-Specific Shared Secret** and copy the 32-character key.
-3. In Indic8, paste this key into the **Apple Shared Secret** field and click **Save**.
-
----
-
-## Notification Types Handled
-
-Indic8 automatically translates Apple notifications into revenue metrics:
-
-| Notification Type | Event Subtype | What Indic8 Records |
-| :--- | :--- | :--- |
-| `SUBSCRIBED` | `INITIAL_BUY` | New subscription added to MRR |
-| `DID_RENEW` | -- | Subscription renewal realized |
-| `DID_CHANGE_RENEWAL_STATUS` | `AUTO_RENEW_DISABLED` | Marked as scheduled cancellation |
-| `EXPIRED` | `VOLUNTARY` | Subscription expired (churn recorded) |
-| `REFUND` | -- | Apple customer refund deducted |
-| `OFFER_REDEEMED` | `PROMOTIONAL` | Promo discount tracked |
