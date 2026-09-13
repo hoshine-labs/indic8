@@ -1,41 +1,69 @@
 ---
-title: "Paddle Billing Integration"
-description: "Sync Paddle Billing checkouts, recurring billing, customer tax deductions, and adjustments."
+title: "Paddle Billing Setup Guide"
+description: "Connect Paddle Billing checkouts, subscriptions, adjustments, and enterprise invoicing."
 ---
 
-Connect Paddle Billing to capture software license transactions, B2B invoicing, and multi-region tax settlements.
+Connect Paddle Billing to track software sales, B2B recurring invoicing, and tax withholdings.
 
-## Quick Setup
+## What You Need
 
-<Steps>
-  <Step title="Retrieve your Webhook Destination URL">
-    In the Indic8 dashboard, go to **Settings > Integrations > Paddle**.
-    
-    Copy your URL:
-    ```url
-    https://api.indic8.ing/v1/webhooks/paddle/whk_live_your_workspace_id
-    ```
-  </Step>
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Destination URL** | Indic8 Dashboard > Settings > Integrations > Paddle | The endpoint for Paddle notifications |
+| **Notification Secret Key** | Paddle Dashboard > Developer Tools > Notifications | Verifies webhook authenticity |
 
-  <Step title="Add Notification Destination in Paddle">
-    1. Log in to [Paddle Billing](https://vendors.paddle.com).
-    2. Go to **Developer Tools > Notifications**.
-    3. Click **New destination**.
-    4. Select **Webhook** and paste your Indic8 URL.
-  </Step>
+---
 
-  <Step title="Subscribe to Events">
-    Select these event types:
-    - `transaction.completed`
-    - `transaction.billed`
-    - `transaction.canceled`
-    - `subscription.created`
-    - `subscription.updated`
-    - `subscription.canceled`
-    - `adjustment.created`
-  </Step>
+## Step 1: Copy your Indic8 Paddle URL
 
-  <Step title="Save and Copy Secret">
-    Copy the **Notification Secret Key** (`pdl_ntf_set_...`) from Paddle and save it inside your Indic8 settings.
-  </Step>
-</Steps>
+1. In [Indic8](https://app.indic8.ing), go to **Settings > Integrations > Paddle**.
+2. Click **Copy** next to your Webhook URL:
+   ```text
+   https://api.indic8.ing/v1/webhooks/paddle/whk_live_xxxxxxxx
+   ```
+
+---
+
+## Step 2: Add Destination in Paddle
+
+1. Log in to your [Paddle Dashboard](https://vendors.paddle.com).
+2. In the left navigation, click **Developer tools**.
+3. Click **Notifications** in the submenu.
+4. Click the blue button **+ New destination**.
+5. Set **Destination name** to `Indic8 Revenue Telemetry`.
+6. Set **Notification type** to **Webhook**.
+7. In **Endpoint URL**, paste the URL from Step 1.
+
+---
+
+## Step 3: Select Required Events
+
+Check the boxes for these 7 events:
+
+| Event Name | What it updates in Indic8 |
+| :--- | :--- |
+| `transaction.completed` | Successful customer payments and checkouts |
+| `transaction.billed` | Invoiced B2B orders |
+| `transaction.canceled` | Canceled orders |
+| `subscription.created` | New active recurring subscriptions |
+| `subscription.updated` | Plan upgrades, downgrades, and price renewals |
+| `subscription.canceled` | Canceled subscriptions (tracked as churn) |
+| `adjustment.created` | Refunds, chargebacks, and credit adjustments |
+
+Click **Save destination**.
+
+---
+
+## Step 4: Copy Secret into Indic8
+
+1. In Paddle, under your newly created notification destination, find the **Secret key** (starts with `pdl_ntf_set_...`).
+2. Click **Copy**.
+3. In Indic8, paste the key into the **Paddle Secret** field and click **Save & Connect**.
+
+---
+
+## Step 5: Verify Setup
+
+1. In Paddle, click **Send test notification**.
+2. Select `transaction.completed` and click **Send**.
+3. Check your Indic8 dashboard to confirm the test transaction appears.

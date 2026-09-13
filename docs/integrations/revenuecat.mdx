@@ -1,51 +1,69 @@
 ---
-title: "RevenueCat Integration"
-description: "Consolidate Apple App Store, Google Play, Stripe, and Amazon in-app purchases with RevenueCat webhooks."
+title: "RevenueCat Setup Guide"
+description: "Connect iOS, Android, and web in-app subscriptions from RevenueCat to Indic8."
 ---
 
-Connect RevenueCat to stream mobile subscription lifecycles, trial conversions, and renewals directly into Indic8.
+Connect RevenueCat to stream mobile in-app purchase events, trial conversions, renewals, and cancellations into Indic8.
 
-## Quick Setup
+## What You Need
 
-<Steps>
-  <Step title="Copy your Ingress URL">
-    In Indic8, go to **Settings > Integrations > RevenueCat**.
-    
-    Copy your endpoint URL:
-    ```url
-    https://api.indic8.ing/v1/webhooks/revenuecat/whk_live_your_workspace_id
-    ```
-  </Step>
-
-  <Step title="Configure Webhook in RevenueCat">
-    1. Log in to [RevenueCat](https://app.revenuecat.com).
-    2. Select your Project and go to **Project Settings > Integrations > Webhooks**.
-    3. Click **Add Webhook**.
-    4. Set the **Webhook URL** to your Indic8 endpoint.
-  </Step>
-
-  <Step title="Configure Authorization Header">
-    In the **Authorization Header Value** field, enter the authorization token provided in your Indic8 dashboard.
-  </Step>
-
-  <Step title="Select Environments">
-    Check **Production** and optionally **Sandbox** (sandbox events are isolated from live metrics).
-  </Step>
-</Steps>
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Webhook Ingress URL** | Indic8 Dashboard > Settings > Integrations > RevenueCat | The webhook listener URL |
+| **Authorization Token** | Generated inside Indic8 settings modal | Verifies the request came from your RevenueCat project |
 
 ---
 
-## Event Mapping
+## Step 1: Get Ingress URL & Token from Indic8
 
-| RevenueCat Type | Indic8 Metric |
+1. In your [Indic8 Dashboard](https://app.indic8.ing), go to **Settings > Integrations**.
+2. Click **RevenueCat**.
+3. Copy both:
+   - **Webhook URL**: `https://api.indic8.ing/v1/webhooks/revenuecat/whk_live_xxxxxxxx`
+   - **Authorization Token**: A unique secret token string generated for your project.
+
+---
+
+## Step 2: Add Webhook in RevenueCat
+
+1. Open your [RevenueCat Dashboard](https://app.revenuecat.com).
+2. Select your App Project.
+3. In the left navigation, click **Project Settings** (gear icon).
+4. Click **Integrations** in the submenu, then select **Webhooks**.
+5. Click **+ Add Webhook** or **New Integration**.
+
+---
+
+## Step 3: Fill in Webhook Settings
+
+| Field Name | What to enter |
 | :--- | :--- |
-| `INITIAL_PURCHASE` | New Sale & First-Time Subscription MRR |
-| `RENEWAL` | Recurring Revenue Realization |
-| `CANCELLATION` | Churn Flag (Grace Period Active) |
-| `EXPIRATION` | MRR Contraction & Subscription Deleted |
-| `BILLING_ISSUE` | Past-Due Risk Alert |
-| `PRODUCT_CHANGE` | Upgrade or Downgrade Adjustment |
+| **Webhook URL** | Paste the Indic8 URL from Step 1 |
+| **Authorization Header Value** | Paste the Authorization Token from Step 1 |
+| **Environment** | Check **Production** (you can also check **Sandbox** for test mode) |
+| **Send Test Events** | Yes |
 
-<Tip>
-  Indic8 automatically extracts the storefront currency (`price_in_purchased_currency`) from RevenueCat events and applies European Central Bank spot rates for accurate USD/EUR conversion.
-</Tip>
+Click **Save** in the bottom right corner.
+
+---
+
+## Step 4: Event Mapping Summary
+
+RevenueCat sends standard events that Indic8 categorizes automatically:
+
+| RevenueCat Event | How Indic8 counts it |
+| :--- | :--- |
+| `INITIAL_PURCHASE` | Added as a new sale and updates MRR |
+| `RENEWAL` | Realized recurring revenue (tracked on schedule) |
+| `PRODUCT_CHANGE` | Plan upgrade or downgrade adjustment |
+| `CANCELLATION` | Marked as scheduled cancellation |
+| `EXPIRATION` | Deducted from active subscribers and MRR |
+| `BILLING_ISSUE` | Past-due notice alert |
+
+---
+
+## Step 5: Verify Setup
+
+1. In RevenueCat, click **Send Test Event**.
+2. Select `INITIAL_PURCHASE`.
+3. Open your Indic8 Live Feed to confirm the test transaction appears.

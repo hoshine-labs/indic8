@@ -1,8 +1,8 @@
-<svg width="140" height="36" viewBox="0 0 140 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g transform="translate(0, 3)">
-    <rect width="30" height="30" rx="7" fill="#FB1100"/>
-    <circle cx="15" cy="11" r="4" fill="white"/>
-    <path d="M11 20.2C11 18 12.8 16.2 15 16.2C17.2 16.2 19 18 19 20.2V22.6C19 22.8 18.8 23 18.6 23H11.4C11.2 23 11 22.8 11 22.6V20.2Z" fill="white"/>
+<svg width="150" height="36" viewBox="0 0 150 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 3) scale(0.075)">
+    <rect width="400" height="400" rx="88" fill="#FB1100"/>
+    <circle cx="200" cy="146.934" r="53.0664" fill="white"/>
+    <path d="M146.934 269.473C146.934 240.165 170.692 216.406 200 216.406C229.308 216.406 253.066 240.165 253.066 269.473V301.757C253.066 302.107 253.066 302.282 253.055 302.429C252.909 304.405 251.338 305.976 249.362 306.123C249.215 306.133 249.039 306.133 248.689 306.133H151.311C150.961 306.133 150.786 306.133 150.638 306.123C148.662 305.976 147.091 304.405 147.091 302.429C146.934 302.282 146.934 302.107 146.934 301.757V269.473Z" fill="white"/>
   </g>
-  <text x="38" y="24" fill="#0D0F17" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="19" letter-spacing="-0.03em">indic8</text>
+  <text x="38" y="24" fill="#0D0F17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="700" font-size="20" letter-spacing="-0.03em">indic8</text>
 </svg>

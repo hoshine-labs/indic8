@@ -1,42 +1,65 @@
 ---
-title: "Apple App Store Integration"
-description: "Direct ingestion of App Store Server Notifications v2 with real-time trial conversion tracking."
+title: "Apple App Store Setup Guide"
+description: "Direct connection with Apple App Store Server Notifications v2 for iOS and macOS purchases."
 ---
 
-Connect Apple App Store Server Notifications (V2) to ingest native iOS and macOS in-app purchases and subscriptions without third-party intermediaries.
+Connect your iOS or macOS apps directly using Apple App Store Server Notifications (V2).
 
-## Quick Setup
+## What You Need
 
-<Steps>
-  <Step title="Get your Indic8 Webhook Ingress URL">
-    In Indic8, open **Settings > Integrations > Apple App Store**.
-    
-    Copy your URL:
-    ```url
-    https://api.indic8.ing/v1/webhooks/appstore/whk_live_your_workspace_id
-    ```
-  </Step>
-
-  <Step title="Configure in App Store Connect">
-    1. Log in to [App Store Connect](https://appstoreconnect.apple.com).
-    2. Select your App and go to **App Information**.
-    3. Scroll down to **App Store Server Notifications**.
-    4. Set **Production Server URL** to your Indic8 URL.
-    5. Set **Version** to **Version 2 Notifications**.
-  </Step>
-
-  <Step title="Provide App Store Connect Shared Secret">
-    Enter your App-Specific Shared Secret or In-App Purchase Key into Indic8 to allow cryptographic verification of Apple signed JWS payloads.
-  </Step>
-</Steps>
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Apple Ingress URL** | Indic8 Dashboard > Settings > Integrations > Apple | Endpoint where Apple sends signed notifications |
+| **App-Specific Shared Secret** | App Store Connect > App > In-App Purchases | Validates signed transaction receipts |
 
 ---
 
-## Signed JWS Verification
+## Step 1: Copy your Indic8 Apple URL
 
-Apple V2 notifications deliver payload contents inside a signed JSON Web Signature (JWS).
+1. In [Indic8](https://app.indic8.ing), navigate to **Settings > Integrations > Apple App Store**.
+2. Copy your unique URL:
+   ```text
+   https://api.indic8.ing/v1/webhooks/appstore/whk_live_xxxxxxxx
+   ```
 
-Indic8 verifies the x5c certificate chain against the Apple Root CA before decoding:
-- Validates the timestamp and bundle identifier.
-- Extracts `transactionId`, `originalTransactionId`, and `productIdentifier`.
-- Evaluates promotional offer redemptions and renewal states.
+---
+
+## Step 2: Open App Store Connect
+
+1. Log in to [App Store Connect](https://appstoreconnect.apple.com).
+2. Click **My Apps** and select your application.
+3. In the left menu under **General**, click **App Information**.
+4. Scroll down to the section titled **App Store Server Notifications**.
+
+---
+
+## Step 3: Enter URL and Version
+
+1. In **Production Server URL**, click **Set Up URL** (or **Edit**).
+2. Paste the Indic8 URL you copied in Step 1.
+3. Under **Version**, select **Version 2 Notifications**.
+4. (Optional) Set the **Sandbox Server URL** to the same Indic8 URL to test purchases in Xcode Simulator.
+5. Click **Save**.
+
+---
+
+## Step 4: Add Shared Secret to Indic8
+
+1. In App Store Connect, go to **In-App Purchases > Manage**.
+2. Click **App-Specific Shared Secret** and copy the 32-character key.
+3. In Indic8, paste this key into the **Apple Shared Secret** field and click **Save**.
+
+---
+
+## Notification Types Handled
+
+Indic8 automatically translates Apple notifications into revenue metrics:
+
+| Notification Type | Event Subtype | What Indic8 Records |
+| :--- | :--- | :--- |
+| `SUBSCRIBED` | `INITIAL_BUY` | New subscription added to MRR |
+| `DID_RENEW` | -- | Subscription renewal realized |
+| `DID_CHANGE_RENEWAL_STATUS` | `AUTO_RENEW_DISABLED` | Marked as scheduled cancellation |
+| `EXPIRED` | `VOLUNTARY` | Subscription expired (churn recorded) |
+| `REFUND` | -- | Apple customer refund deducted |
+| `OFFER_REDEEMED` | `PROMOTIONAL` | Promo discount tracked |

@@ -1,9 +1,9 @@
 ---
-title: "Custom Webhook Ingress"
-description: "Send direct revenue events from proprietary billing engines or custom checkout flows."
+title: "Custom Webhook Setup Guide"
+description: "Send direct revenue events from your own backend, crypto processors, or custom checkout forms."
 ---
 
-If you run a proprietary checkout flow, a bespoke crypto gateway, or an offline enterprise invoicing tool, you can push events directly into Indic8 using standard HMAC-SHA256 authenticated webhooks.
+If you use a custom payment processor or run an internal checkout flow, you can push transaction events directly to Indic8 using HTTP POST requests.
 
 ## Ingress Endpoint
 
@@ -15,25 +15,27 @@ X-Indic8-Signature: t=1726233600,v1=9f81a7b6c891...
 
 ---
 
-## Canonical Payload Schema
+## JSON Payload Format
+
+Send a JSON body with the following structure:
 
 ```json
 {
-  "event_id": "cust_tx_90184920",
+  "event_id": "order_custom_10293",
   "event_type": "transaction.sale",
   "product": {
-    "external_id": "sku_enterprise_annual",
-    "name": "Enterprise Annual License",
+    "external_id": "prod_pro_tier",
+    "name": "Pro Yearly Membership",
     "category": "SaaS"
   },
   "financials": {
-    "amount": 12000.00,
+    "amount": 99.00,
     "currency": "USD",
-    "provider_fee": 150.00,
+    "provider_fee": 2.50,
     "tax_amount": 0.00
   },
   "customer": {
-    "identifier": "cust_acme_corp",
+    "identifier": "usr_acme_001",
     "country_code": "US"
   },
   "timestamp": "2026-09-13T12:00:00Z"
@@ -42,43 +44,81 @@ X-Indic8-Signature: t=1726233600,v1=9f81a7b6c891...
 
 ---
 
-## Generating HMAC Signatures
+## Field Reference
 
-To ensure payloads cannot be forged or tampered with in transit, compute an HMAC-SHA256 signature over the timestamp concatenated with the raw JSON payload:
+| Field Name | Type | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `event_id` | `string` | Yes | Unique ID from your database to prevent duplicate counts |
+| `event_type` | `string` | Yes | `transaction.sale`, `subscription.new`, `transaction.refund`, or `subscription.churn` |
+| `product.name` | `string` | Yes | Display name for your product in the catalog |
+| `financials.amount` | `number` | Yes | Gross amount paid in standard units (e.g. `99.00` for $99) |
+| `financials.currency` | `string` | Yes | Three-letter currency code (e.g. `USD`, `EUR`, `GBP`) |
+| `customer.country_code`| `string`| No | ISO 2-letter country code (e.g. `US`, `GB`, `IN`, `DE`) |
+
+---
+
+## Code Example: Sending an Event
 
 <Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST https://api.indic8.ing/v1/events/custom \
+      -H "Authorization: Bearer ind_live_your_key" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "event_id": "order_custom_10293",
+        "event_type": "transaction.sale",
+        "product": { "name": "Pro Yearly" },
+        "financials": { "amount": 99.00, "currency": "USD" },
+        "customer": { "country_code": "US" }
+      }'
+    ```
+  </Tab>
+
   <Tab title="TypeScript / Node.js">
     ```typescript
-    import crypto from 'crypto';
+    async function sendSaleEvent() {
+      const response = await fetch("https://api.indic8.ing/v1/events/custom", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer ind_live_your_key",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event_id: "order_custom_10293",
+          event_type: "transaction.sale",
+          product: { name: "Pro Yearly" },
+          financials: { amount: 99.00, currency: "USD" },
+          customer: { country_code: "US" }
+        })
+      });
 
-    function signPayload(payload: string, secret: string): string {
-      const timestamp = Math.floor(Date.now() / 1000);
-      const signature = crypto
-        .createHmac('sha256', secret)
-        .update(`${timestamp}.${payload}`)
-        .digest('hex');
-
-      return `t=${timestamp},v1=${signature}`;
+      const result = await response.json();
+      console.log("Indic8 Response:", result);
     }
     ```
   </Tab>
 
   <Tab title="Python">
     ```python
-    import hmac
-    import hashlib
-    import time
+    import requests
 
-    def sign_payload(payload_str: str, secret_key: str) -> str:
-        timestamp = int(time.time())
-        to_sign = f"{timestamp}.{payload_str}".encode('utf-8')
-        signature = hmac.new(
-            secret_key.encode('utf-8'),
-            to_sign,
-            hashlib.sha256
-        ).hexdigest()
-        
-        return f"t={timestamp},v1={signature}"
+    def send_sale_event():
+        url = "https://api.indic8.ing/v1/events/custom"
+        headers = {
+            "Authorization": "Bearer ind_live_your_key",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "event_id": "order_custom_10293",
+            "event_type": "transaction.sale",
+            "product": {"name": "Pro Yearly"},
+            "financials": {"amount": 99.00, "currency": "USD"},
+            "customer": {"country_code": "US"}
+        }
+
+        res = requests.post(url, json=payload, headers=headers)
+        print("Indic8 Response:", res.json())
     ```
   </Tab>
 </Tabs>

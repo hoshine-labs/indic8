@@ -1,79 +1,92 @@
 ---
-title: "Stripe Integration"
-description: "Connect your Stripe account to stream charges, subscriptions, invoices, and dispute events."
+title: "Stripe Setup Guide"
+description: "Step-by-step instructions to connect your Stripe account to Indic8 in 2 minutes."
 ---
 
-Connect Stripe to Indic8 to unify one-time checkout sessions, recurring customer subscriptions, metered invoices, and chargebacks.
+Follow this guide to connect Stripe. You will copy an endpoint URL from Indic8 into your Stripe Dashboard and copy back a webhook signing secret.
 
-## Quick Setup
+## What You Need
 
-<Steps>
-  <Step title="Retrieve your Indic8 Webhook Ingress URL">
-    In the Indic8 dashboard, navigate to **Settings > Integrations > Stripe**.
-    
-    Copy your endpoint URL:
-    ```url
-    https://api.indic8.ing/v1/webhooks/stripe/whk_live_your_workspace_id
-    ```
-  </Step>
-
-  <Step title="Add an Endpoint in Stripe Dashboard">
-    1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com).
-    2. Go to **Developers > Webhooks**.
-    3. Click **Add an endpoint**.
-    4. Paste the URL copied in Step 1.
-  </Step>
-
-  <Step title="Select Events to Listen For">
-    Select the following required events:
-    
-    - `checkout.session.completed`
-    - `charge.succeeded`
-    - `charge.refunded`
-    - `charge.dispute.created`
-    - `customer.subscription.created`
-    - `customer.subscription.updated`
-    - `customer.subscription.deleted`
-    - `invoice.paid`
-    - `invoice.payment_failed`
-  </Step>
-
-  <Step title="Save and Copy the Webhook Signing Secret">
-    After creating the endpoint, reveal the **Signing secret** (starts with `whsec_...`).
-    
-    Paste this key into the Indic8 Stripe integration settings modal and click **Save**.
-  </Step>
-</Steps>
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Webhook URL** | Indic8 Dashboard > Settings > Integrations > Stripe | Tells Stripe where to send payment notifications |
+| **Stripe Signing Secret** | Stripe Dashboard > Developers > Webhooks | Verifies that incoming payment data is genuine |
+| **Stripe Restricted Key** *(Optional)* | Stripe Dashboard > Developers > API Keys | Imports historical past months data |
 
 ---
 
-## Historical Data Backfill (Optional)
+## Step 1: Get your Webhook URL from Indic8
 
-To ingest historical transactions and compute backward-looking MRR:
+1. Open your [Indic8 Dashboard](https://app.indic8.ing).
+2. Go to **Settings > Integrations > Stripe**.
+3. Click **Copy** next to your unique Webhook URL. It looks like:
+   ```text
+   https://api.indic8.ing/v1/webhooks/stripe/whk_live_xxxxxxxx
+   ```
+
+---
+
+## Step 2: Add Webhook in Stripe Dashboard
+
+1. Open your [Stripe Dashboard](https://dashboard.stripe.com).
+2. In the top right navigation, click **Developers**.
+3. In the left menu, click **Webhooks**.
+4. Click the blue button **Add destination** (or **Add an endpoint**).
+5. In the **Endpoint URL** box, paste the URL you copied from Indic8 in Step 1.
+6. Under **Description**, you can enter `Indic8 Revenue Telemetry`.
+
+---
+
+## Step 3: Select Required Webhook Events
+
+Click **Select events** and check the boxes for these 9 events:
+
+| Event Group | Event Name | What it updates in Indic8 |
+| :--- | :--- | :--- |
+| **Checkout** | `checkout.session.completed` | New customer purchases and checkouts |
+| **Charges** | `charge.succeeded` | Successful card payments |
+| **Charges** | `charge.refunded` | Customer refunds (deducted from net revenue) |
+| **Charges** | `charge.dispute.created` | Payment chargebacks and disputes |
+| **Subscriptions** | `customer.subscription.created` | New recurring monthly/yearly subscribers |
+| **Subscriptions** | `customer.subscription.updated` | Plan upgrades or downgrades |
+| **Subscriptions** | `customer.subscription.deleted` | Canceled subscriptions (churn tracking) |
+| **Invoices** | `invoice.paid` | Recurring subscription payments and B2B invoices |
+| **Invoices** | `invoice.payment_failed` | Failed renewal payments |
+
+Click **Add events** at the bottom of the dialog, then click **Add endpoint** to save.
+
+---
+
+## Step 4: Copy Signing Secret into Indic8
+
+1. On the new webhook page you just created in Stripe, look for **Signing secret** on the right side.
+2. Click **Reveal**.
+3. Copy the secret key (it begins with `whsec_...`).
+4. Go back to your Indic8 tab, paste this string into the **Signing Secret** input box, and click **Save & Connect**.
+
+---
+
+## Step 5: Verify the Connection
+
+1. In your Stripe Webhook page, click **Send test event** in the top right.
+2. Select `checkout.session.completed` and click **Send test webhook**.
+3. Open your Indic8 Dashboard. The test event will show up in your live activity stream within 2 seconds.
+
+---
+
+## Importing Past Sales (Optional)
+
+If you want Indic8 to calculate MRR and sales history for past months:
 
 1. In Stripe, go to **Developers > API keys**.
-2. Click **Create restricted key**.
-3. Grant **Read** access for:
-   - `Charges`
-   - `Customer balance transactions`
-   - `Disputes`
-   - `Invoices`
-   - `Subscriptions`
-   - `Products`
-4. Paste the key (`rk_live_...`) into Indic8 and click **Start Historical Sync**.
-
----
-
-## Event Mapping Reference
-
-| Stripe Event | Indic8 Classification | Financial Impact |
-| :--- | :--- | :--- |
-| `checkout.session.completed` | `transaction.sale` | Added to Gross Volume |
-| `charge.refunded` | `transaction.refund` | Deducted from Net Volume |
-| `customer.subscription.created` | `subscription.new` | Increases MRR |
-| `customer.subscription.deleted` | `subscription.churn` | Deducts from MRR |
-| `charge.dispute.created` | `transaction.dispute` | Flagged for review |
-
-<Tip>
-  Stripe test-mode events (`whsec_test_...` or test API keys) are automatically routed to the Indic8 Sandbox view and will not distort your production metrics.
-</Tip>
+2. Under **Restricted keys**, click **Create restricted key**.
+3. Set key name to `Indic8 Read-Only`.
+4. Grant **Read** access to:
+   - `Charges` -> Read
+   - `Customer balance transactions` -> Read
+   - `Disputes` -> Read
+   - `Invoices` -> Read
+   - `Subscriptions` -> Read
+   - `Products` -> Read
+5. Click **Create key** and copy the secret (`rk_live_...`).
+6. Paste into Indic8 under **Historical Sync** and click **Start Import**.

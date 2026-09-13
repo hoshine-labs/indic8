@@ -1,65 +1,52 @@
 ---
 title: "Introduction"
-description: "Unified revenue telemetry, multi-gateway ingress, and zero-PII sovereign intelligence for modern software companies."
+description: "Unified revenue dashboard, multi-gateway sync, and privacy-first analytics for modern software businesses."
 ---
-
-import { CheckIcon, ShieldCheckIcon, GlobeAltIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
 # Welcome to Indic8
 
-Indic8 is a high-throughput, sovereign revenue intelligence platform. It consolidates asynchronous payment events across multiple billing providers into a real-time ledger, calculates instant foreign exchange normalization, and computes cohort retention metrics with zero customer PII storage.
+Indic8 brings all your sales, subscriptions, and payment providers into one live dashboard. It converts different currencies automatically, tracks customer renewals, and never stores raw customer credit card details.
 
 <CardGroup cols={2}>
   <Card title="Quickstart Guide" icon="bolt" href="/quickstart">
-    Connect your first payment gateway and view live revenue telemetry in under 3 minutes.
+    Connect your first payment gateway and view live revenue in under 3 minutes.
   </Card>
   <Card title="Gateway Integrations" icon="plug" href="/integrations/overview">
-    Connect Stripe, Polar, RevenueCat, Lemon Squeezy, App Store, and Google Play.
+    Step-by-step guides for Stripe, Polar, RevenueCat, Lemon Squeezy, Apple, and Google.
   </Card>
   <Card title="Self-Hosting Guide" icon="server" href="/self-hosting/docker-compose">
-    Deploy your sovereign instance with Docker Compose or serverless on Vercel and Neon.
+    Deploy on your own server with Docker Compose or serverless on Vercel and Neon.
   </Card>
   <Card title="API Reference" icon="code" href="/api-reference/overview">
-    Explore the REST and WebSocket endpoints for custom ingress and telemetry feeds.
+    Explore the REST API and live WebSocket feed for custom integrations.
   </Card>
 </CardGroup>
-
-## Why Indic8?
-
-Modern software companies rarely rely on a single payment provider. You might sell web subscriptions through Stripe or Polar, mobile in-app purchases via RevenueCat and the Apple App Store, and digital assets via Lemon Squeezy.
-
-This fragmented stack leads to common operational hurdles:
-- Disconnected dashboards with inconsistent metric definitions.
-- Manual currency conversion spreadsheets that delay monthly reporting.
-- High risk of customer data leakage when exporting raw CSVs.
-- Inability to compare cross-channel retention and customer lifetime value.
-
-Indic8 unifies these disparate streams into a single sovereign pane of glass.
 
 ---
 
-## Core Pillars
+## Why Indic8?
 
-<CardGroup cols={3}>
-  <Card title="Universal Ingress" icon="layer-group">
-    Sub-2ms atomic ingestion normalizes webhook events from every major payment provider into a single schema.
-  </Card>
-  <Card title="Automated FX Rates" icon="globe">
-    Real-time European Central Bank rates convert global multi-currency transactions into your base reporting currency.
-  </Card>
-  <Card title="Zero-PII Sovereign Vault" icon="shield-halved">
-    Client-side AES-256-GCM encryption ensures customer emails, names, and cards never touch persistent storage.
-  </Card>
-  <Card title="Cohort Intelligence" icon="chart-line">
-    Track Net Revenue Retention (NRR), blended customer lifetime value (LTV), and cross-provider vintage curves.
-  </Card>
-  <Card title="Studio Canvas" icon="sparkles">
-    Generate shareable, verified proof-of-revenue milestone cards for community updates and investor reports.
-  </Card>
-  <Card title="Open Source & Cloud" icon="cube">
-    100% Free and Open Source under AGPLv3 for self-hosters, with a managed cloud option for zero-ops teams.
-  </Card>
-</CardGroup>
+Most software businesses sell products through more than one platform:
+- Web subscriptions on **Stripe** or **Polar**
+- Mobile in-app purchases on **Apple App Store** and **Google Play**
+- Digital downloads on **Lemon Squeezy** or **Paddle**
+
+Checking multiple dashboards every day makes it hard to see your true total Monthly Recurring Revenue (MRR) or track how many active subscribers you have.
+
+Indic8 connects all these payment streams into one clear, real-time view.
+
+---
+
+## Key Features
+
+| Feature | What it does for you |
+| :--- | :--- |
+| **All-in-One Dashboard** | See your total sales, MRR, and customer count in one place |
+| **Automatic Currency Conversion** | Converts EUR, GBP, JPY, and other currencies into your main currency |
+| **Zero-PII Privacy Vault** | Never stores customer credit cards, names, or raw email addresses |
+| **Cohort Retention** | See what percentage of customers renew month after month |
+| **Milestone Cards** | Create verified cards to share revenue achievements on social media |
+| **100% Open Source** | Free to self-host on your own servers with zero limits |
 
 ---
 
@@ -67,26 +54,23 @@ Indic8 unifies these disparate streams into a single sovereign pane of glass.
 
 ```mermaid
 flowchart LR
-    A[Stripe] --> E[Ingress Gateway]
+    A[Stripe] --> E[Indic8 Ingress]
     B[Polar] --> E
     C[RevenueCat] --> E
     D[Lemon Squeezy] --> E
     
-    E --> F[Atomic Schema Normalizer]
-    F --> G[ECB FX Engine]
-    G --> H[Sovereign Vault AES-256]
-    H --> I[Unified Revenue Ledger]
+    E --> F[Currency Converter]
+    F --> G[Privacy Vault]
+    G --> H[Unified Ledger]
     
-    I --> J[Live Dashboard]
-    I --> K[Studio Canvas Cards]
-    I --> L[Real-Time WebSockets]
+    H --> I[Live Dashboard]
+    H --> J[Milestone Cards]
 ```
 
-1. **Ingestion**: Webhook payloads hit the edge ingress gateway with signature verification.
-2. **Normalization**: Heterogeneous schemas are mapped to the canonical `Transaction` model.
-3. **FX Translation**: Non-base currencies are translated using exact timestamped ECB spot rates.
-4. **Sovereign Scrubbing**: Personal customer identifiers are redacted or encrypted client-side.
-5. **Broadcasting**: Real-time updates push via WebSocket directly to your dashboard.
+1. **Connect**: Add a webhook URL in your provider dashboard.
+2. **Sync**: Indic8 verifies each payment event in real time.
+3. **Convert**: Non-USD payments are converted using European Central Bank rates.
+4. **Display**: Your dashboard updates instantly without refreshing.
 
 ---
 
@@ -94,12 +78,12 @@ flowchart LR
 
 <Steps>
   <Step title="Follow the Quickstart">
-    Get up and running locally or on the cloud in [Quickstart](/quickstart).
+    Get started in 3 minutes in our [Quickstart Guide](/quickstart).
   </Step>
-  <Step title="Connect Gateways">
-    Configure webhook endpoints for your billing providers in [Integrations](/integrations/overview).
+  <Step title="Connect your Providers">
+    Follow the step-by-step instructions in [Integrations](/integrations/overview).
   </Step>
-  <Step title="Explore the API">
-    Learn how to query metrics programmatically in the [API Reference](/api-reference/overview).
-  </Steps>
+  <Step title="Customize Settings">
+    Set your workspace currency and invite your team.
+  </Step>
 </Steps>

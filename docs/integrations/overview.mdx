@@ -1,64 +1,65 @@
 ---
 title: "Integrations Overview"
-description: "Connect payment gateways, in-app purchase providers, and custom checkout webhooks."
+description: "Connect your payment gateways to stream sales, subscriptions, refunds, and active customer numbers."
 ---
 
-Indic8 natively supports direct webhook synchronization and read-only API polling for the industry standard billing platforms.
+Indic8 connects directly to your existing payment processors. You can connect one provider or all of them together.
 
-## Supported Providers
+## Quick Comparison Table
 
-<CardGroup cols={3}>
-  <Card title="Stripe" icon="stripe" href="/integrations/stripe">
-    Sync one-time charges, recurring subscriptions, invoice items, and disputes.
+| Provider | Best For | Connection Method | Time to Setup |
+| :--- | :--- | :--- | :--- |
+| **Stripe** | Credit cards, subscriptions, invoices | Webhooks + Read-only API | 2 minutes |
+| **Polar** | Developer tools, GitHub funding, digital files | Webhooks | 2 minutes |
+| **RevenueCat** | iOS and Android in-app subscriptions | Webhooks | 3 minutes |
+| **Lemon Squeezy** | Merchant of Record checkouts, global sales tax | Webhooks | 2 minutes |
+| **Apple App Store** | Native iOS and macOS in-app purchases | App Store Server Notifications v2 | 4 minutes |
+| **Google Play** | Native Android in-app purchases | Google Cloud Pub/Sub | 5 minutes |
+| **Paddle** | B2B SaaS, European sales tax, wire invoices | Webhooks | 3 minutes |
+| **Custom Webhooks** | Custom payment forms, crypto, internal tools | REST API / HMAC Webhooks | 5 minutes |
+
+---
+
+## How Connection Works
+
+Indic8 works using two simple methods:
+
+1. **Real-Time Webhooks**: Every time a customer buys or renews, your payment provider sends a quick notification to Indic8. Indic8 checks the security signature and updates your numbers in under 2 seconds.
+2. **Read-Only API Keys (Optional)**: If you want to import older sales from past months, you can add a read-only key. Indic8 never asks for write permissions.
+
+---
+
+## Security Promise
+
+<Check>
+  **Zero Write Access**: Indic8 only reads transaction numbers and dates. It can never charge customers, create refunds, or change your products.
+</Check>
+
+<Check>
+  **Zero Credit Card Storage**: Raw card numbers and sensitive customer details never touch Indic8 database disks.
+</Check>
+
+---
+
+## Select Your Provider
+
+<CardGroup cols={2}>
+  <Card title="Stripe Setup Guide" icon="stripe" href="/integrations/stripe">
+    Step-by-step guide with exact Stripe dashboard clicks and webhook events.
   </Card>
-  <Card title="Polar" icon="snowflake" href="/integrations/polar">
-    Ingest GitHub developer funding, digital downloads, and recurring tier pledges.
+  <Card title="Polar Setup Guide" icon="snowflake" href="/integrations/polar">
+    Connect Polar products, recurring tiers, and donations.
   </Card>
-  <Card title="RevenueCat" icon="cat" href="/integrations/revenuecat">
-    Consolidate mobile subscriptions across iOS and Android with unified sandbox filtering.
+  <Card title="RevenueCat Setup Guide" icon="cat" href="/integrations/revenuecat">
+    Connect Apple and Google mobile in-app subscriptions via RevenueCat.
   </Card>
-  <Card title="Lemon Squeezy" icon="lemon" href="/integrations/lemon-squeezy">
-    Sync Merchant-of-Record checkouts, digital licensing, and tax-inclusive sales.
+  <Card title="Lemon Squeezy Setup Guide" icon="lemon" href="/integrations/lemon-squeezy">
+    Sync Lemon Squeezy orders, taxes, and software licenses.
   </Card>
-  <Card title="Apple App Store" icon="apple" href="/integrations/app-store">
-    Ingest App Store Server Notifications v2 with real-time trial conversions.
+  <Card title="Apple App Store Setup Guide" icon="apple" href="/integrations/app-store">
+    Direct setup using App Store Connect Server Notifications v2.
   </Card>
-  <Card title="Google Play" icon="google-play" href="/integrations/google-play">
-    Real-Time Developer Notifications (RTDN) via Google Cloud Pub/Sub.
-  </Card>
-  <Card title="Paddle Billing" icon="sailboat" href="/integrations/paddle">
-    Connect Paddle Billing webhooks with automatic multi-entity tax handling.
-  </Card>
-  <Card title="Custom Webhooks" icon="terminal" href="/integrations/custom-webhooks">
-    Push custom billing payloads and internal telemetry via standard HMAC signatures.
+  <Card title="Google Play Setup Guide" icon="google-play" href="/integrations/google-play">
+    Connect Google Play Console with Google Cloud Pub/Sub.
   </Card>
 </CardGroup>
-
----
-
-## Connection Models
-
-Indic8 supports two connection mechanisms depending on provider capabilities:
-
-### 1. Real-Time Webhooks (Recommended)
-Webhooks provide sub-2ms event delivery directly when a transaction occurs in your gateway. Indic8 verifies incoming signatures using your provider webhook signing secrets.
-
-### 2. Historical Backfill (Read-Only API)
-When connecting a gateway for the first time, you can provide a **Restricted Read-Only API Key**. Indic8 automatically paginates through historical transactions to build historical MRR and cohort vintage charts without write access to your billing engine.
-
----
-
-## Security and Permission Scopes
-
-<Note>
-  Indic8 **never** requests write permissions to your payment gateways. Always use restricted, read-only tokens with minimal scopes.
-</Note>
-
-| Provider | Recommended Key Type | Required Scopes |
-| :--- | :--- | :--- |
-| **Stripe** | Restricted API Key (RAK) | `Charges (Read)`, `Subscriptions (Read)`, `Invoices (Read)` |
-| **Polar** | Personal Access Token | `Read-only` |
-| **RevenueCat** | V2 REST API Key | `Read Project Data` |
-| **Lemon Squeezy** | API Key | `Read Orders`, `Read Subscriptions` |
-| **Apple App Store** | App Store Connect API Key | `Finance (Read)` |
-| **Google Play** | Service Account Key | `Financial Reports (View)` |

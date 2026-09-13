@@ -1,55 +1,71 @@
 ---
-title: "Lemon Squeezy Integration"
-description: "Ingest Merchant-of-Record checkouts, digital licensing, and tax-inclusive SaaS orders."
+title: "Lemon Squeezy Setup Guide"
+description: "Connect Lemon Squeezy Merchant of Record checkouts, taxes, and subscriptions to Indic8."
 ---
 
-Connect Lemon Squeezy to aggregate Merchant of Record sales, EU VAT calculations, license key activations, and recurring billing.
+Connect Lemon Squeezy to track your product orders, tax breakdowns, license key activations, and subscription renewals.
 
-## Quick Setup
+## What You Need
 
-<Steps>
-  <Step title="Get your Indic8 Webhook Ingress URL">
-    In your Indic8 dashboard, go to **Settings > Integrations > Lemon Squeezy**.
-    
-    Copy your endpoint URL:
-    ```url
-    https://api.indic8.ing/v1/webhooks/lemonsqueezy/whk_live_your_workspace_id
-    ```
-  </Step>
-
-  <Step title="Add Webhook in Lemon Squeezy">
-    1. Log in to your [Lemon Squeezy Dashboard](https://app.lemonsqueezy.com).
-    2. Go to **Settings > Webhooks**.
-    3. Click the **+** button to create a new webhook.
-    4. Set the **Callback URL** to your Indic8 endpoint.
-  </Step>
-
-  <Step title="Set Signing Secret">
-    Enter a strong secret string under **Signing secret**, and paste the identical string into your Indic8 Lemon Squeezy integration settings.
-  </Step>
-
-  <Step title="Select Events">
-    Select the following webhook topics:
-    
-    - `order_created`
-    - `order_refunded`
-    - `subscription_created`
-    - `subscription_updated`
-    - `subscription_cancelled`
-    - `subscription_resumed`
-    - `subscription_expired`
-    - `license_key_created`
-  </Step>
-</Steps>
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Webhook URL** | Indic8 Dashboard > Settings > Integrations > Lemon Squeezy | Destination for Lemon Squeezy notifications |
+| **Signing Secret** | You create this string in Lemon Squeezy | Secures webhook delivery with cryptographic signatures |
 
 ---
 
-## Tax and MoR Fee Reconciliation
+## Step 1: Copy your Indic8 Webhook URL
 
-Because Lemon Squeezy acts as a Merchant of Record, orders include customer-paid sales tax and platform processing fees.
+1. In [Indic8](https://app.indic8.ing), go to **Settings > Integrations > Lemon Squeezy**.
+2. Click **Copy** next to your Webhook URL:
+   ```text
+   https://api.indic8.ing/v1/webhooks/lemonsqueezy/whk_live_xxxxxxxx
+   ```
 
-Indic8 automatically breaks down every order:
-- **Total Customer Paid**: Full amount charged.
-- **Taxes & VAT**: Separated from your company net revenue.
-- **Lemon Squeezy Fee**: Logged as gateway processing expense.
-- **Your Net Earnings**: Added to real-time cash flow metrics.
+---
+
+## Step 2: Add Webhook in Lemon Squeezy
+
+1. Open your [Lemon Squeezy Dashboard](https://app.lemonsqueezy.com).
+2. In the left navigation, click **Settings**.
+3. Under the **Developers** section, click **Webhooks**.
+4. Click the purple **+** button (or **Create Webhook**).
+5. In **Callback URL**, paste the URL from Step 1.
+6. In **Secret**, type a secure random string (for example, generate one using a password manager).
+7. Copy this secret to your clipboard.
+
+---
+
+## Step 3: Select Webhook Events
+
+Check the boxes for these 8 topics:
+
+| Event Topic | Description |
+| :--- | :--- |
+| `order_created` | New product checkouts and one-time orders |
+| `order_refunded` | Customer refunds and charge deductions |
+| `subscription_created` | New recurring subscription checkouts |
+| `subscription_updated` | Plan updates, renewals, and card changes |
+| `subscription_cancelled` | Canceled subscriptions |
+| `subscription_resumed` | Re-activated subscriptions |
+| `subscription_expired` | Expired subscriptions (churn) |
+| `license_key_created` | Issued software license keys |
+
+Click **Create Webhook**.
+
+---
+
+## Step 4: Paste Secret in Indic8 & Save
+
+1. Go back to your Indic8 Lemon Squeezy settings tab.
+2. Paste the exact secret string you created in Step 2 into the **Signing Secret** box.
+3. Click **Save & Connect**.
+
+---
+
+## Step 5: Test the Integration
+
+1. In Lemon Squeezy, on the webhook details page, click the **...** menu on the right.
+2. Click **Send test**.
+3. Select `order_created` and click **Send**.
+4. Check your Indic8 dashboard to confirm the test order arrives with sub-2s latency.

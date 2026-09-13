@@ -1,41 +1,64 @@
 ---
-title: "Google Play Integration"
-description: "Sync Android in-app purchases and subscriptions via Google Cloud Pub/Sub Real-Time Developer Notifications."
+title: "Google Play Setup Guide"
+description: "Connect Android in-app purchases and subscriptions using Google Cloud Pub/Sub."
 ---
 
-Connect Google Play to ingest Android in-app purchases, recurring subscription states, grace periods, and account holds.
+Connect Google Play Real-Time Developer Notifications (RTDN) to ingest Android in-app purchases and recurring subscriptions.
 
-## Architecture
+## What You Need
 
-Google Play uses Google Cloud Pub/Sub to deliver Real-Time Developer Notifications (RTDN).
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Google Ingress URL** | Indic8 Dashboard > Settings > Integrations > Google Play | The push endpoint for Google Cloud Pub/Sub |
+| **Google Cloud Pub/Sub Topic** | Google Cloud Console | Receives real-time events from Google Play |
 
-```mermaid
-flowchart LR
-    GP[Google Play Console] --> PS[Google Cloud Pub/Sub]
-    PS --> Sub[Indic8 Push Subscription]
-    Sub --> Ind[Indic8 Normalizer]
-```
+---
 
-## Quick Setup
+## Step 1: Create a Google Cloud Pub/Sub Topic
 
-<Steps>
-  <Step title="Create a Pub/Sub Topic">
-    1. Open the [Google Cloud Console](https://console.cloud.google.com).
-    2. Go to **Pub/Sub > Topics** and create a topic named `indic8-play-notifications`.
-    3. Grant publisher rights to `google-play-developer-notifications@system.gserviceaccount.com`.
-  </Step>
+1. Open the [Google Cloud Console](https://console.cloud.google.com).
+2. Ensure you have selected the project linked to your Google Play Console.
+3. In the search bar, type `Pub/Sub` and open **Topics**.
+4. Click **Create Topic**.
+5. Set Topic ID to: `indic8-rtdn-topic`.
+6. Click **Create**.
 
-  <Step title="Create a Push Subscription">
-    1. Create a subscription attached to the topic above.
-    2. Set Delivery Type to **Push**.
-    3. Enter the Endpoint URL from Indic8 (**Settings > Integrations > Google Play**).
-  </Step>
+---
 
-  <Step title="Configure Google Play Console">
-    1. Open [Google Play Console](https://play.google.com/console).
-    2. Go to **Monetization setup**.
-    3. Under **Real-time developer notifications**, enter your full Pub/Sub topic name:
-       `projects/your-project-id/topics/indic8-play-notifications`.
-    4. Click **Send test notification** to verify.
-  </Step>
-</Steps>
+## Step 2: Grant Google Play Permission to Publish
+
+1. On your newly created topic page, click the **Permissions** tab on the right side.
+2. Click **Add Principal**.
+3. In **New principals**, enter:
+   ```text
+   google-play-developer-notifications@system.gserviceaccount.com
+   ```
+4. In **Select a role**, choose **Pub/Sub Publisher**.
+5. Click **Save**.
+
+---
+
+## Step 3: Create a Push Subscription
+
+1. In Pub/Sub, go to **Subscriptions** in the left menu.
+2. Click **Create Subscription**.
+3. Set Subscription ID to: `indic8-rtdn-sub`.
+4. Select the topic: `projects/your-project/topics/indic8-rtdn-topic`.
+5. Under **Delivery type**, select **Push**.
+6. In **Endpoint URL**, paste the URL from Indic8 (**Settings > Integrations > Google Play**).
+7. Leave all other settings as default and click **Create**.
+
+---
+
+## Step 4: Link Topic in Google Play Console
+
+1. Open the [Google Play Console](https://play.google.com/console).
+2. Select your Android App.
+3. In the left menu, scroll down to **Monetize > Monetization setup**.
+4. Scroll to **Real-time developer notifications**.
+5. In **Topic name**, enter your full Pub/Sub path:
+   ```text
+   projects/your-gcp-project-id/topics/indic8-rtdn-topic
+   ```
+6. Click **Send test notification** to verify the connection.
+7. Click **Save changes** at the bottom of the screen.

@@ -1,68 +1,69 @@
 ---
-title: "Polar Integration"
-description: "Sync digital product sales, subscriptions, and open-source developer funding from Polar.sh."
+title: "Polar Setup Guide"
+description: "Step-by-step instructions to connect Polar.sh products, tiers, and funding to Indic8."
 ---
 
-Connect Polar to track open-source sponsorship tiers, digital file downloads, and software license revenue in real time.
+Connect Polar to track developer sponsorships, software file sales, and subscription tiers.
 
-## Quick Setup
+## What You Need
 
-<Steps>
-  <Step title="Get your Indic8 Webhook Ingress URL">
-    Navigate to **Settings > Integrations > Polar** in your Indic8 dashboard.
-    
-    Copy your endpoint URL:
-    ```url
-    https://api.indic8.ing/v1/webhooks/polar/whk_live_your_workspace_id
-    ```
-  </Step>
-
-  <Step title="Create a Webhook in Polar">
-    1. Log in to your [Polar.sh Dashboard](https://polar.sh/dashboard).
-    2. Navigate to **Settings > Webhooks**.
-    3. Click **Add Webhook Endpoint**.
-    4. Paste your Indic8 Webhook URL.
-  </Step>
-
-  <Step title="Subscribe to Events">
-    Enable the following event triggers:
-    
-    - `order.created`
-    - `order.refunded`
-    - `subscription.created`
-    - `subscription.updated`
-    - `subscription.canceled`
-    - `benefit_grant.created`
-  </Step>
-
-  <Step title="Paste Secret Token">
-    Copy the generated **Webhook Secret** from Polar into Indic8 and click **Connect Polar**.
-  </Step>
-</Steps>
+| Item | Where to get it | Purpose |
+| :--- | :--- | :--- |
+| **Indic8 Webhook URL** | Indic8 Dashboard > Settings > Integrations > Polar | The destination URL for Polar events |
+| **Polar Webhook Secret** | Polar Dashboard > Settings > Webhooks | Verifies payload signature authenticity |
 
 ---
 
-## Supported Polar Entities
+## Step 1: Copy your Indic8 Polar URL
 
-- **Digital Products**: Individual one-off software licenses or downloads.
-- **Monthly Pledges & Tiers**: Recurring developer subscriptions and sponsorships.
-- **Donations & Tips**: Non-recurring support contributions.
+1. In your [Indic8 Dashboard](https://app.indic8.ing), click **Settings**.
+2. Click **Integrations**, then click **Polar**.
+3. Copy your unique Polar webhook URL:
+   ```text
+   https://api.indic8.ing/v1/webhooks/polar/whk_live_xxxxxxxx
+   ```
 
-```json
-{
-  "event": "order.created",
-  "data": {
-    "id": "ord_polar_90214",
-    "amount": 2900,
-    "currency": "usd",
-    "product_id": "prod_polar_cli",
-    "customer": {
-      "email": "dev@example.com"
-    }
-  }
-}
-```
+---
 
-<Note>
-  Indic8 normalizes Polar products automatically into your product catalog and matches them against existing Unified Products by SKU slug.
-</Note>
+## Step 2: Create Webhook in Polar.sh
+
+1. Log in to [Polar.sh](https://polar.sh/dashboard).
+2. Select your organization or personal profile from the top left dropdown.
+3. In the left sidebar, click **Settings**.
+4. Scroll down to the **Webhooks** section and click **Add Endpoint**.
+5. Paste your Indic8 URL into the **Endpoint URL** field.
+6. Under **Format**, keep the default `JSON`.
+
+---
+
+## Step 3: Select Polar Events
+
+Check the boxes for these 6 events:
+
+| Event Name | What it updates in Indic8 |
+| :--- | :--- |
+| `order.created` | One-time software purchases, product sales, and donations |
+| `order.refunded` | Customer refunds and charge deductions |
+| `subscription.created` | New recurring tier backers and subscription signups |
+| `subscription.updated` | Tier upgrades, tier downgrades, and price updates |
+| `subscription.canceled` | Canceled pledges (tracked as churn) |
+| `benefit_grant.created` | License key and GitHub benefit grants |
+
+Click **Save Endpoint**.
+
+---
+
+## Step 4: Copy Secret into Indic8
+
+1. In your newly created Polar webhook page, click **Show Secret** to reveal the secret string.
+2. Copy this value.
+3. Return to Indic8 and paste it into the **Polar Secret** field.
+4. Click **Save & Connect**.
+
+---
+
+## Step 5: Test Connection
+
+1. On the Polar webhook details page, click **Send Test Event**.
+2. Pick `order.created` and click **Send**.
+3. Check your Indic8 overview page. You will see the event appear immediately in the live feed.
