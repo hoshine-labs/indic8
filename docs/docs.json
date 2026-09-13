@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Indic8",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#818CF8",
-    "dark": "#4F46E5"
+    "primary": "#FB1100",
+    "light": "#FF4D3D",
+    "dark": "#E00F00"
   },
   "logo": {
     "light": "/assets/logo-light.svg",
@@ -14,100 +14,71 @@
   },
   "favicon": "/assets/favicon.svg",
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Getting Started",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "introduction",
-              "quickstart",
-              "architecture",
-              "concepts"
-            ]
-          }
+        "group": "Overview",
+        "pages": [
+          "index",
+          "introduction",
+          "quickstart",
+          "architecture",
+          "concepts"
         ]
       },
       {
-        "tab": "Integrations",
-        "groups": [
-          {
-            "group": "Gateway Integrations",
-            "pages": [
-              "integrations/overview",
-              "integrations/stripe",
-              "integrations/polar",
-              "integrations/revenuecat",
-              "integrations/lemon-squeezy",
-              "integrations/app-store",
-              "integrations/google-play",
-              "integrations/paddle",
-              "integrations/custom-webhooks"
-            ]
-          }
+        "group": "Gateway Integrations",
+        "pages": [
+          "integrations/overview",
+          "integrations/stripe",
+          "integrations/polar",
+          "integrations/revenuecat",
+          "integrations/lemon-squeezy",
+          "integrations/app-store",
+          "integrations/google-play",
+          "integrations/paddle",
+          "integrations/custom-webhooks"
         ]
       },
       {
-        "tab": "Features",
-        "groups": [
-          {
-            "group": "Core Capabilities",
-            "pages": [
-              "features/multi-gateway-ingress",
-              "features/fx-normalization",
-              "features/zero-pii-vault",
-              "features/cohort-retention",
-              "features/studio-canvas",
-              "features/team-workspaces"
-            ]
-          }
+        "group": "Core Capabilities",
+        "pages": [
+          "features/multi-gateway-ingress",
+          "features/fx-normalization",
+          "features/zero-pii-vault",
+          "features/cohort-retention",
+          "features/studio-canvas",
+          "features/team-workspaces"
         ]
       },
       {
-        "tab": "Self-Hosting",
-        "groups": [
-          {
-            "group": "Deployment & Operations",
-            "pages": [
-              "self-hosting/docker-compose",
-              "self-hosting/vercel-neon",
-              "self-hosting/environment-variables",
-              "self-hosting/database-migrations",
-              "self-hosting/backup-restore"
-            ]
-          }
+        "group": "Deployment & Operations",
+        "pages": [
+          "self-hosting/docker-compose",
+          "self-hosting/vercel-neon",
+          "self-hosting/environment-variables",
+          "self-hosting/database-migrations",
+          "self-hosting/backup-restore"
         ]
       },
       {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/overview",
-              "api-reference/authentication",
-              "api-reference/events",
-              "api-reference/products",
-              "api-reference/transactions",
-              "api-reference/metrics",
-              "api-reference/milestones",
-              "api-reference/webhooks"
-            ]
-          }
+        "group": "API Reference",
+        "pages": [
+          "api-reference/overview",
+          "api-reference/authentication",
+          "api-reference/events",
+          "api-reference/products",
+          "api-reference/transactions",
+          "api-reference/metrics",
+          "api-reference/milestones",
+          "api-reference/webhooks"
         ]
       },
       {
-        "tab": "Security",
-        "groups": [
-          {
-            "group": "Privacy & Trust",
-            "pages": [
-              "security/sovereign-vault",
-              "security/zero-pii-guarantee",
-              "security/compliance"
-            ]
-          }
+        "group": "Privacy & Trust",
+        "pages": [
+          "security/sovereign-vault",
+          "security/zero-pii-guarantee",
+          "security/compliance"
         ]
       }
     ]
@@ -120,7 +91,7 @@
       },
       {
         "label": "GitHub",
-        "href": "https://github.com/indic8"
+        "href": "https://github.com/hoshine-labs/indic8"
       }
     ],
     "primary": {
@@ -131,7 +102,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/indic8",
+      "github": "https://github.com/hoshine-labs/indic8",
       "x": "https://x.com/indic8"
     }
   }

@@ -8,12 +8,12 @@
   },
   "favicon": "/assets/favicon.svg",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#818CF8",
-    "dark": "#4F46E5",
+    "primary": "#FB1100",
+    "light": "#FF4D3D",
+    "dark": "#E00F00",
     "anchors": {
-      "from": "#6366F1",
-      "to": "#10B981"
+      "from": "#FB1100",
+      "to": "#FF4D3D"
     }
   },
   "topbarLinks": [
@@ -23,43 +23,18 @@
     },
     {
       "name": "GitHub",
-      "url": "https://github.com/indic8"
+      "url": "https://github.com/hoshine-labs/indic8"
     }
   ],
   "topbarCtaButton": {
     "name": "Launch App",
     "url": "https://app.indic8.ing"
   },
-  "tabs": [
-    {
-      "name": "Getting Started",
-      "url": "introduction"
-    },
-    {
-      "name": "Integrations",
-      "url": "integrations"
-    },
-    {
-      "name": "Features",
-      "url": "features"
-    },
-    {
-      "name": "Self-Hosting",
-      "url": "self-hosting"
-    },
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    },
-    {
-      "name": "Security",
-      "url": "security"
-    }
-  ],
   "navigation": [
     {
       "group": "Overview",
       "pages": [
+        "index",
         "introduction",
         "quickstart",
         "architecture",
@@ -130,7 +105,7 @@
     }
   },
   "footerSocials": {
-    "github": "https://github.com/indic8",
+    "github": "https://github.com/hoshine-labs/indic8",
     "x": "https://x.com/indic8"
   }
 }
