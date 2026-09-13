@@ -1,0 +1,138 @@
+---
+title: "Quickstart"
+description: "Get started with Indic8 in under 5 minutes using Managed Cloud or Self-Hosted Docker."
+---
+
+Choose your preferred deployment method below to begin aggregating your revenue streams.
+
+<Tabs>
+  <Tab title="Managed Cloud (Fastest)">
+    Follow these steps to set up Indic8 on our managed infrastructure:
+
+    <Steps>
+      <Step title="Create an Account">
+        Visit [app.indic8.ing](https://app.indic8.ing) and sign in using GitHub or Google authentication.
+      </Step>
+
+      <Step title="Create a Workspace">
+        Give your workspace a name (e.g. `Acme Corp`) and select your default reporting currency (`USD`, `EUR`, `GBP`, `INR`, or `JPY`).
+      </Step>
+
+      <Step title="Connect Your First Payment Gateway">
+        Navigate to **Settings > Integrations** and select your primary provider (such as Stripe or Polar).
+        
+        Copy the generated Indic8 Webhook URL and paste it into your payment provider developer dashboard.
+      </Step>
+
+      <Step title="Trigger a Test Webhook">
+        Send a test `checkout.session.completed` or `order_created` event from your provider dashboard. Indic8 will verify the cryptographic signature and display the event live in under 2 seconds.
+      </Step>
+    </Steps>
+
+    <Check>
+      **Success**: Your dashboard is now streaming real-time revenue telemetry.
+    </Check>
+  </Tab>
+
+  <Tab title="Self-Hosted (Docker Compose)">
+    Deploy the complete Indic8 stack on your own server using Docker Compose:
+
+    <Steps>
+      <Step title="Clone the Repository">
+        ```bash
+        git clone https://github.com/indic8/indic8.git
+        cd indic8
+        ```
+      </Step>
+
+      <Step title="Configure Environment Variables">
+        Copy the example environment configuration file:
+        
+        ```bash
+        cp .env.example .env
+        ```
+
+        Generate an encryption master key for your Sovereign Vault:
+        
+        ```bash
+        openssl rand -hex 32
+        ```
+
+        Paste this value into `.env` under `VAULT_ENCRYPTION_KEY`.
+      </Step>
+
+      <Step title="Launch the Services">
+        Start the Indic8 web app, Postgres database, and Redis queue:
+
+        ```bash
+        docker compose up -d
+        ```
+      </Step>
+
+      <Step title="Access the Dashboard">
+        Open your browser and navigate to:
+        
+        ```url
+        http://localhost:3000
+        ```
+        
+        Complete the initial admin setup and generate your workspace keys.
+      </Step>
+    </Steps>
+
+    <Tip>
+      For detailed production deployment guides, see the [Docker Compose Deployment](/self-hosting/docker-compose) guide.
+    </Tip>
+  </Tab>
+</Tabs>
+
+---
+
+## Verifying Ingestion
+
+Once your webhook endpoint is configured, you can verify data flow using the Indic8 CLI or by sending a sample event via cURL:
+
+```bash
+curl -X POST https://api.indic8.ing/v1/events/ingest \
+  -H "Authorization: Bearer ind_live_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "stripe",
+    "event_type": "checkout.session.completed",
+    "payload": {
+      "id": "evt_test_12345",
+      "amount": 4900,
+      "currency": "usd",
+      "customer_country": "US",
+      "timestamp": "2026-09-13T12:00:00Z"
+    }
+  }'
+```
+
+### Expected Response
+
+```json
+{
+  "status": "success",
+  "event_id": "evt_norm_8f49a2",
+  "normalized": {
+    "amount_base": 49.00,
+    "base_currency": "USD",
+    "fx_rate": 1.0,
+    "latency_ms": 1.4
+  }
+}
+```
+
+---
+
+## Recommended Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configure Gateways" icon="plug" href="/integrations/overview">
+    Add additional billing platforms to consolidate your entire revenue stack.
+  </Card>
+  <Card title="Zero-PII Vault" icon="shield-check" href="/features/zero-pii-vault">
+    Learn how Indic8 isolates and encrypts transaction records.
+  </Card>
+</CardGroup>

@@ -1,0 +1,120 @@
+---
+title: "Docker Compose Deployment"
+description: "Deploy a production-ready, self-hosted Indic8 instance using Docker Compose."
+---
+
+Self-hosting Indic8 gives you complete sovereign control over your revenue data. The Docker Compose setup provisions the Indic8 web application, PostgreSQL database, and Redis background queue.
+
+## Prerequisites
+
+- Server with Docker and Docker Compose (v2.20+)
+- Minimum 1 GB RAM and 1 vCPU
+- A domain name pointing to your server with SSL/TLS (e.g. via Caddy, Nginx, or Cloudflare)
+
+---
+
+## Production docker-compose.yml
+
+Create a directory on your server and save the following configuration as `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  indic8-app:
+    image: ghcr.io/indic8/indic8:latest
+    container_name: indic8-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=https://analytics.yourcompany.com
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - DATABASE_URL=postgresql://indic8_user:${POSTGRES_PASSWORD}@postgres:5432/indic8_db
+      - REDIS_URL=redis://redis:6379
+      - VAULT_ENCRYPTION_KEY=${VAULT_ENCRYPTION_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: indic8-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: indic8_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: indic8_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U indic8_user -d indic8_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: indic8-redis
+    restart: always
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+---
+
+## Environment Setup
+
+Create a `.env` file in the same directory:
+
+```bash
+# Generate secrets
+NEXTAUTH_SECRET=$(openssl rand -hex 32)
+POSTGRES_PASSWORD=$(openssl rand -hex 24)
+VAULT_ENCRYPTION_KEY=$(openssl rand -hex 32)
+
+cat <<EOF > .env
+NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+VAULT_ENCRYPTION_KEY=${VAULT_ENCRYPTION_KEY}
+EOF
+```
+
+---
+
+## Starting the Stack
+
+```bash
+docker compose up -d
+```
+
+View logs to verify healthy boot:
+
+```bash
+docker compose logs -f indic8-app
+```
+
+---
+
+## Reverse Proxy with Caddy
+
+If you use Caddy for automatic SSL certificates:
+
+```caddy
+analytics.yourcompany.com {
+    reverse_proxy localhost:3000
+}
+```

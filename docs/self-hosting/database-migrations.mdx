@@ -1,0 +1,43 @@
+---
+title: "Database Migrations"
+description: "Managing PostgreSQL schema migrations and upgrades for self-hosted instances."
+---
+
+Indic8 manages PostgreSQL relational tables using Prisma schema migrations.
+
+## Schema Overview
+
+The core database tables include:
+- `workspaces`: Multi-tenant organization configs and reporting currencies.
+- `provider_accounts`: Gateway connection records and webhook secrets.
+- `unified_products`: Aggregated cross-channel products.
+- `transactions`: Immutable financial ledger records.
+- `cohort_vintages`: Pre-calculated retention and LTV matrices.
+- `milestone_snapshots`: Cryptographically signed milestone records.
+
+---
+
+## Running Migrations Manually
+
+When updating your Indic8 deployment to a newer release:
+
+```bash
+# Pull latest changes
+git pull origin main
+
+# Install updated dependencies
+npm install
+
+# Apply database migrations
+npx prisma migrate deploy
+```
+
+---
+
+## Seed Database (Development)
+
+To populate sample test transactions and provider accounts:
+
+```bash
+npm run seed
+```

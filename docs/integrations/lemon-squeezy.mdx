@@ -1,0 +1,55 @@
+---
+title: "Lemon Squeezy Integration"
+description: "Ingest Merchant-of-Record checkouts, digital licensing, and tax-inclusive SaaS orders."
+---
+
+Connect Lemon Squeezy to aggregate Merchant of Record sales, EU VAT calculations, license key activations, and recurring billing.
+
+## Quick Setup
+
+<Steps>
+  <Step title="Get your Indic8 Webhook Ingress URL">
+    In your Indic8 dashboard, go to **Settings > Integrations > Lemon Squeezy**.
+    
+    Copy your endpoint URL:
+    ```url
+    https://api.indic8.ing/v1/webhooks/lemonsqueezy/whk_live_your_workspace_id
+    ```
+  </Step>
+
+  <Step title="Add Webhook in Lemon Squeezy">
+    1. Log in to your [Lemon Squeezy Dashboard](https://app.lemonsqueezy.com).
+    2. Go to **Settings > Webhooks**.
+    3. Click the **+** button to create a new webhook.
+    4. Set the **Callback URL** to your Indic8 endpoint.
+  </Step>
+
+  <Step title="Set Signing Secret">
+    Enter a strong secret string under **Signing secret**, and paste the identical string into your Indic8 Lemon Squeezy integration settings.
+  </Step>
+
+  <Step title="Select Events">
+    Select the following webhook topics:
+    
+    - `order_created`
+    - `order_refunded`
+    - `subscription_created`
+    - `subscription_updated`
+    - `subscription_cancelled`
+    - `subscription_resumed`
+    - `subscription_expired`
+    - `license_key_created`
+  </Step>
+</Steps>
+
+---
+
+## Tax and MoR Fee Reconciliation
+
+Because Lemon Squeezy acts as a Merchant of Record, orders include customer-paid sales tax and platform processing fees.
+
+Indic8 automatically breaks down every order:
+- **Total Customer Paid**: Full amount charged.
+- **Taxes & VAT**: Separated from your company net revenue.
+- **Lemon Squeezy Fee**: Logged as gateway processing expense.
+- **Your Net Earnings**: Added to real-time cash flow metrics.

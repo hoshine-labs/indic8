@@ -1,0 +1,60 @@
+---
+title: "Zero-PII Sovereign Vault"
+description: "Client-side Web Crypto encryption, customer token hashing, and zero raw PII storage."
+---
+
+Traditional analytics tools store customer names, full email addresses, billing addresses, and raw IP addresses, creating severe privacy liabilities and compliance overhead (GDPR, CCPA, SOC 2).
+
+Indic8 is built with a **Zero-PII Sovereign Privacy Vault** architecture.
+
+## How the Vault Operates
+
+```
+[Incoming Webhook]
+  - Name: "Alex Mercer"
+  - Email: "alex@example.com"
+  - Card: "**** 4242"
+  - Amount: $49.00
+           │
+           ▼
+┌──────────────────────────────────────────┐
+│        Sovereign Scrubbing Stage         │
+│  - Strip Card Number (0 bytes stored)    │
+│  - Strip Full Name & Physical Address    │
+│  - Salt + Hash Email -> usr_9f81a7b...   │
+│  - Retain Country Code (e.g. "US")       │
+└──────────────────┬───────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────┐
+│      Client-Side AES-256-GCM Vault       │
+│  - Secrets encrypted with workspace key  │
+│  - Decrypted only in user browser memory │
+└──────────────────┬───────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────┐
+│         Sanitized Database Record        │
+│  - customer_id: "usr_9f81a7b..."         │
+│  - country: "US"                         │
+│  - amount: 49.00                         │
+│  - pii_retained: false                   │
+└──────────────────────────────────────────┘
+```
+
+---
+
+## Technical Security Specifications
+
+### 1. Zero Credit Card Retention
+Indic8 records **0 bytes** of credit card numbers, CVVs, expiration dates, or billing street addresses. Only gross amounts, payment statuses, and country codes are logged.
+
+### 2. One-Way Cryptographic Salt
+Customer email addresses are run through an HMAC-SHA256 function keyed by an internal workspace secret:
+
+$$\text{Customer Identifier} = \text{HMAC-SHA256}(\text{Salt}_{\text{workspace}}, \text{Email}_{\text{normalized}})$$
+
+This provides deterministic cohort tracking across multiple purchases without exposing customer identities.
+
+### 3. Client-Side Decryption via Web Crypto API
+For integrations requiring encrypted API credentials (like restricted Stripe keys), keys are encrypted using AES-256-GCM in the user's browser before transmission. Server nodes never retain unencrypted master secrets in plain text.

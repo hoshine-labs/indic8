@@ -1,0 +1,25 @@
+---
+title: "Compliance & Regulatory Readiness"
+description: "How Indic8 helps teams achieve GDPR, CCPA, and SOC 2 Type II compliance."
+---
+
+By design, the simplest way to comply with global data privacy regulations is to avoid storing sensitive customer data in the first place.
+
+## Regulatory Frameworks
+
+### 1. GDPR (General Data Protection Regulation)
+Under GDPR, storing customer emails and personal identifiers requires complex consent management, Right to be Forgotten (Article 17) deletion workflows, and Data Processing Agreements (DPAs).
+
+Because Indic8 replaces customer emails with non-reversible pseudonymized hashes and discards personal identifiers at ingress:
+- No personal customer records are stored on disk.
+- GDPR deletion requests for payment telemetry require zero manual database scrubbing.
+- Cross-border data transfer concerns are dramatically mitigated.
+
+### 2. CCPA / CPRA (California Consumer Privacy Act)
+Indic8 does not sell, share, or monetize customer data. Telemetry is used exclusively to compute aggregate financial metrics for the workspace owner.
+
+### 3. SOC 2 Type II Readiness
+For enterprise and self-hosted environments:
+- **Audit Logging**: Immutable logging for all administrative actions.
+- **Least Privilege Access**: Role-based access control with granular API token scoping.
+- **Encryption at Rest & in Transit**: TLS 1.3 for all endpoints and AES-256-GCM for sensitive fields.

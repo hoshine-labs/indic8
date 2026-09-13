@@ -1,0 +1,98 @@
+---
+title: "System Architecture"
+description: "High-throughput ingress, atomic normalization, foreign exchange conversion, and zero-PII security layers."
+---
+
+Indic8 is designed as a distributed, privacy-first pipeline engineered to handle millions of payment events with sub-2ms latency.
+
+## High-Level Topology
+
+The diagram below illustrates the flow of raw provider events through the Indic8 ingestion and processing layers:
+
+```
+[External Payment Providers]
+(Stripe / Polar / RevenueCat / Lemon Squeezy / Apple / Google)
+            │
+            ▼ (Encrypted HTTPS POST + Signature Header)
+┌────────────────────────────────────────────────────────┐
+│                   Edge Ingress Gateway                 │
+│  - Cryptographic Signature Verification                │
+│  - Rate Limiting and Deduplication Filter              │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│               Atomic Normalization Pipeline            │
+│  - Canonical Event Mapping                             │
+│  - SKU and Product Grouping Logic                      │
+└───────────────────────────┬────────────────────────────┘
+                            │
+              ┌─────────────┴─────────────┐
+              ▼                           ▼
+┌───────────────────────────┐ ┌──────────────────────────┐
+│     ECB FX Converter      │ │  Zero-PII Sovereign      │
+│  - Real-time Spot Rates   │ │  Vault (AES-256-GCM)     │
+│  - Base Currency Parity   │ │  - Client Token Scrub    │
+└─────────────┬─────────────┘ └───────────┬──────────────┘
+              │                           │
+              └─────────────┬─────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│              Unified Real-Time Ledger (Postgres)       │
+└───────────────────────────┬────────────────────────────┘
+                            │
+              ┌─────────────┴─────────────┐
+              ▼                           ▼
+┌───────────────────────────┐ ┌──────────────────────────┐
+│   WebSocket Broadcaster   │ │  Studio Canvas Generator │
+│  - Sub-10ms Live Pushes   │ │  - Cryptographic Proof   │
+└───────────────────────────┘ └──────────────────────────┘
+```
+
+---
+
+## Architectural Components
+
+### 1. Edge Ingress Gateway
+The ingress gateway acts as the initial frontline receiver.
+- **Signature Verification**: Validates HMAC-SHA256 signatures for Stripe, Polar, Lemon Squeezy, and Paddle.
+- **Idempotency Guard**: Extracts provider event IDs into an in-memory Redis cache with 48-hour expiration to prevent duplicate billing records.
+- **Immediate Acknowledgment**: Responds to providers with `200 OK` within 25ms to prevent timeout retries, then delegates processing to the asynchronous worker queue.
+
+### 2. Atomic Normalization Pipeline
+Each payment provider formats payloads differently. Indic8 parses nested metadata into a uniform canonical schema:
+
+| Provider | Origin Field | Canonical Indic8 Attribute |
+| :--- | :--- | :--- |
+| Stripe | `data.object.amount_total` (cents) | `amount` (float in decimal units) |
+| Polar | `data.amount` (cents) | `amount` (float in decimal units) |
+| Lemon Squeezy | `data.attributes.total` (cents) | `amount` (float in decimal units) |
+| RevenueCat | `event.price_in_purchased_currency` | `amount` (float in decimal units) |
+
+### 3. Real-Time Foreign Exchange (FX) Engine
+Indic8 connects to the European Central Bank (ECB) reference feed and cross-references historical intraday spot rates for 140+ currency pairs.
+- Multi-currency sales in EUR, GBP, JPY, CAD, and AUD are converted to your workspace base currency at the exact second of purchase.
+- Zero conversion spread is applied, guaranteeing accurate net revenue reconciliation.
+
+### 4. Zero-PII Sovereign Privacy Vault
+Before records are written to PostgreSQL:
+- Customer names, IP addresses, and email prefixes are scrubbed.
+- An irreversible cryptographic one-way salt generates a pseudo-anonymous `customer_hash`.
+- Sensitive tokens are sealed client-side using Web Crypto AES-256-GCM keys that are never shared with backend telemetry servers.
+
+### 5. WebSocket Telemetry Broadcaster
+Every committed transaction emits an event to the internal Pub/Sub channel. Connected clients receive the live transaction stream with sub-10ms latency.
+
+---
+
+## Resilience and Scalability
+
+<CardGroup cols={2}>
+  <Card title="Horizontal Scaling" icon="server">
+    Ingress workers run statelessly across multiple edge regions, scaling dynamically based on traffic spikes.
+  </Card>
+  <Card title="Dead Letter Queue" icon="envelope">
+    Malformed or rejected provider payloads are isolated in an encrypted dead-letter queue for inspection and replay.
+  </Card>
+</CardGroup>

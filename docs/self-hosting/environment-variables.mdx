@@ -1,0 +1,44 @@
+---
+title: "Environment Variables Reference"
+description: "Comprehensive reference matrix of all configuration options and environment variables."
+---
+
+This page documents all environment variables used by Indic8.
+
+## Core Application Configuration
+
+| Variable | Required | Description | Example |
+| :--- | :--- | :--- | :--- |
+| `NODE_ENV` | Yes | Environment mode (`production`, `development`, `test`) | `production` |
+| `NEXTAUTH_URL` | Yes | Canonical root URL of your Indic8 deployment | `https://analytics.example.com` |
+| `NEXTAUTH_SECRET` | Yes | 32-byte secret key used to sign JWT sessions | `6b2e98fa...` |
+| `DATABASE_URL` | Yes | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `REDIS_URL` | Yes | Redis connection string for queues & deduplication | `redis://localhost:6379` |
+| `VAULT_ENCRYPTION_KEY` | Yes | 32-byte hex key for Sovereign Vault AES-256-GCM | `a1b2c3d4...` |
+
+---
+
+## Authentication Providers (Optional)
+
+Configure OAuth logins for team workspace access:
+
+| Variable | Description |
+| :--- | :--- |
+| `GITHUB_CLIENT_ID` | GitHub OAuth application client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth application client secret |
+| `GOOGLE_CLIENT_ID` | Google Cloud OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth client secret |
+
+---
+
+## Storage and CDN (Optional)
+
+For persistent Studio Canvas export card storage:
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `STORAGE_DRIVER` | Storage backend (`s3`, `r2`, `local`) | `local` |
+| `S3_BUCKET` | S3 bucket name | `indic8-storage` |
+| `S3_REGION` | AWS region or Cloudflare R2 region | `us-east-1` |
+| `S3_ACCESS_KEY_ID` | S3 access key ID | -- |
+| `S3_SECRET_ACCESS_KEY` | S3 secret access key | -- |

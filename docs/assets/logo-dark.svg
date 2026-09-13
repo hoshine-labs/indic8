@@ -1,0 +1,13 @@
+<svg width="124" height="28" viewBox="0 0 124 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#clip0_dark)">
+    <rect width="28" height="28" rx="7" fill="#181C2E" stroke="rgba(255,255,255,0.1)"/>
+    <circle cx="14" cy="10" r="3" fill="#818CF8"/>
+    <circle cx="14" cy="18.5" r="3.5" fill="#34D399"/>
+    <text x="36" y="19.5" fill="#F8FAFC" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="17" letter-spacing="-0.03em">indic8</text>
+  </g>
+  <defs>
+    <clipPath id="clip0_dark">
+      <rect width="124" height="28" fill="black"/>
+    </clipPath>
+  </defs>
+</svg>

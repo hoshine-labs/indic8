@@ -1,0 +1,64 @@
+---
+title: "Integrations Overview"
+description: "Connect payment gateways, in-app purchase providers, and custom checkout webhooks."
+---
+
+Indic8 natively supports direct webhook synchronization and read-only API polling for the industry standard billing platforms.
+
+## Supported Providers
+
+<CardGroup cols={3}>
+  <Card title="Stripe" icon="stripe" href="/integrations/stripe">
+    Sync one-time charges, recurring subscriptions, invoice items, and disputes.
+  </Card>
+  <Card title="Polar" icon="snowflake" href="/integrations/polar">
+    Ingest GitHub developer funding, digital downloads, and recurring tier pledges.
+  </Card>
+  <Card title="RevenueCat" icon="cat" href="/integrations/revenuecat">
+    Consolidate mobile subscriptions across iOS and Android with unified sandbox filtering.
+  </Card>
+  <Card title="Lemon Squeezy" icon="lemon" href="/integrations/lemon-squeezy">
+    Sync Merchant-of-Record checkouts, digital licensing, and tax-inclusive sales.
+  </Card>
+  <Card title="Apple App Store" icon="apple" href="/integrations/app-store">
+    Ingest App Store Server Notifications v2 with real-time trial conversions.
+  </Card>
+  <Card title="Google Play" icon="google-play" href="/integrations/google-play">
+    Real-Time Developer Notifications (RTDN) via Google Cloud Pub/Sub.
+  </Card>
+  <Card title="Paddle Billing" icon="sailboat" href="/integrations/paddle">
+    Connect Paddle Billing webhooks with automatic multi-entity tax handling.
+  </Card>
+  <Card title="Custom Webhooks" icon="terminal" href="/integrations/custom-webhooks">
+    Push custom billing payloads and internal telemetry via standard HMAC signatures.
+  </Card>
+</CardGroup>
+
+---
+
+## Connection Models
+
+Indic8 supports two connection mechanisms depending on provider capabilities:
+
+### 1. Real-Time Webhooks (Recommended)
+Webhooks provide sub-2ms event delivery directly when a transaction occurs in your gateway. Indic8 verifies incoming signatures using your provider webhook signing secrets.
+
+### 2. Historical Backfill (Read-Only API)
+When connecting a gateway for the first time, you can provide a **Restricted Read-Only API Key**. Indic8 automatically paginates through historical transactions to build historical MRR and cohort vintage charts without write access to your billing engine.
+
+---
+
+## Security and Permission Scopes
+
+<Note>
+  Indic8 **never** requests write permissions to your payment gateways. Always use restricted, read-only tokens with minimal scopes.
+</Note>
+
+| Provider | Recommended Key Type | Required Scopes |
+| :--- | :--- | :--- |
+| **Stripe** | Restricted API Key (RAK) | `Charges (Read)`, `Subscriptions (Read)`, `Invoices (Read)` |
+| **Polar** | Personal Access Token | `Read-only` |
+| **RevenueCat** | V2 REST API Key | `Read Project Data` |
+| **Lemon Squeezy** | API Key | `Read Orders`, `Read Subscriptions` |
+| **Apple App Store** | App Store Connect API Key | `Finance (Read)` |
+| **Google Play** | Service Account Key | `Financial Reports (View)` |

@@ -1,0 +1,45 @@
+---
+title: "Milestones API"
+description: "Trigger cryptographic milestone verifications and render Studio Canvas export assets."
+---
+
+## Generate Milestone Card
+
+<ParamField path="POST /v1/milestones/generate" type="endpoint">
+  Renders a high-resolution export graphic for a verified revenue milestone.
+</ParamField>
+
+### Request Body
+
+<ParamField body="milestone_type" type="string" required>
+  Type of milestone (`revenue_crossed`, `sales_crossed`, `best_month`).
+</ParamField>
+
+<ParamField body="value" type="number" required>
+  Threshold value crossed (e.g. `100000` for $100k).
+</ParamField>
+
+<ParamField body="theme" type="string" default="obsidian">
+  Visual style (`obsidian`, `emerald`, `violet`, `light`).
+</ParamField>
+
+<ParamField body="aspect_ratio" type="string" default="16:9">
+  Canvas dimensions (`16:9`, `1:1`, `4:5`, `9:16`).
+</ParamField>
+
+---
+
+### Response Example
+
+```json
+{
+  "status": "success",
+  "data": {
+    "card_id": "card_ms_99182a",
+    "png_url": "https://cdn.indic8.ing/cards/card_ms_99182a.png",
+    "svg_url": "https://cdn.indic8.ing/cards/card_ms_99182a.svg",
+    "verified_hash": "sha256:7f81a6c0192e84...",
+    "verification_page": "https://indic8.ing/verify/card_ms_99182a"
+  }
+}
+```

@@ -1,0 +1,84 @@
+---
+title: "Custom Webhook Ingress"
+description: "Send direct revenue events from proprietary billing engines or custom checkout flows."
+---
+
+If you run a proprietary checkout flow, a bespoke crypto gateway, or an offline enterprise invoicing tool, you can push events directly into Indic8 using standard HMAC-SHA256 authenticated webhooks.
+
+## Ingress Endpoint
+
+```http
+POST https://api.indic8.ing/v1/events/custom
+Content-Type: application/json
+X-Indic8-Signature: t=1726233600,v1=9f81a7b6c891...
+```
+
+---
+
+## Canonical Payload Schema
+
+```json
+{
+  "event_id": "cust_tx_90184920",
+  "event_type": "transaction.sale",
+  "product": {
+    "external_id": "sku_enterprise_annual",
+    "name": "Enterprise Annual License",
+    "category": "SaaS"
+  },
+  "financials": {
+    "amount": 12000.00,
+    "currency": "USD",
+    "provider_fee": 150.00,
+    "tax_amount": 0.00
+  },
+  "customer": {
+    "identifier": "cust_acme_corp",
+    "country_code": "US"
+  },
+  "timestamp": "2026-09-13T12:00:00Z"
+}
+```
+
+---
+
+## Generating HMAC Signatures
+
+To ensure payloads cannot be forged or tampered with in transit, compute an HMAC-SHA256 signature over the timestamp concatenated with the raw JSON payload:
+
+<Tabs>
+  <Tab title="TypeScript / Node.js">
+    ```typescript
+    import crypto from 'crypto';
+
+    function signPayload(payload: string, secret: string): string {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signature = crypto
+        .createHmac('sha256', secret)
+        .update(`${timestamp}.${payload}`)
+        .digest('hex');
+
+      return `t=${timestamp},v1=${signature}`;
+    }
+    ```
+  </Tab>
+
+  <Tab title="Python">
+    ```python
+    import hmac
+    import hashlib
+    import time
+
+    def sign_payload(payload_str: str, secret_key: str) -> str:
+        timestamp = int(time.time())
+        to_sign = f"{timestamp}.{payload_str}".encode('utf-8')
+        signature = hmac.new(
+            secret_key.encode('utf-8'),
+            to_sign,
+            hashlib.sha256
+        ).hexdigest()
+        
+        return f"t={timestamp},v1={signature}"
+    ```
+  </Tab>
+</Tabs>

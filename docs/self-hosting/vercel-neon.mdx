@@ -1,0 +1,55 @@
+---
+title: "Deploy on Vercel & Neon"
+description: "Deploy a serverless, zero-maintenance Indic8 instance using Vercel and Neon Postgres."
+---
+
+You can run Indic8 serverless on Vercel with a managed Neon Serverless Postgres database.
+
+## Prerequisites
+
+- A [Vercel](https://vercel.com) account
+- A [Neon](https://neon.tech) Serverless Postgres account
+- An [Upstash Redis](https://upstash.com) serverless Redis instance (for queue & deduplication)
+
+---
+
+## Step-by-Step Deployment
+
+<Steps>
+  <Step title="Create a Neon Postgres Database">
+    1. Log in to Neon and create a new project named `indic8-production`.
+    2. Copy your pooled connection string:
+       `postgresql://user:password@ep-sample-123-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require`
+  </Step>
+
+  <Step title="Create an Upstash Redis Database">
+    1. Log in to Upstash and create a Redis database.
+    2. Copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` (or standard `REDIS_URL`).
+  </Step>
+
+  <Step title="Fork and Deploy to Vercel">
+    1. Fork the [indic8/indic8](https://github.com/indic8/indic8) GitHub repository.
+    2. In Vercel, click **Add New > Project** and import your fork.
+  </Step>
+
+  <Step title="Set Environment Variables in Vercel">
+    Configure the following required environment variables:
+    
+    - `DATABASE_URL`: Your pooled Neon connection string.
+    - `REDIS_URL`: Your Upstash Redis connection string.
+    - `NEXTAUTH_URL`: Your Vercel deployment URL (e.g. `https://analytics.yourdomain.com`).
+    - `NEXTAUTH_SECRET`: Run `openssl rand -hex 32` to generate.
+    - `VAULT_ENCRYPTION_KEY`: Run `openssl rand -hex 32` to generate.
+  </Step>
+
+  <Step title="Run Database Migrations">
+    Vercel automatically triggers Prisma / Drizzle schema pushes during the build step:
+    ```bash
+    npx prisma migrate deploy
+    ```
+  </Step>
+</Steps>
+
+<Check>
+  Your serverless Indic8 instance is now live and ready to receive webhook streams.
+</Check>

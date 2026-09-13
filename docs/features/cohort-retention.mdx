@@ -1,0 +1,41 @@
+---
+title: "Cohort Retention Intelligence"
+description: "Compute Net Revenue Retention (NRR), blended customer lifetime value, and cohort expansion curves."
+---
+
+Retaining and expanding existing customer revenue is critical for SaaS efficiency. Indic8 automatically groups subscribers into monthly acquisition vintages and tracks revenue expansion over time.
+
+## Key Retention Metrics
+
+<CardGroup cols={3}>
+  <Card title="Net Revenue Retention (NRR)" icon="arrow-trending-up">
+    Percentage of recurring revenue retained from a cohort, including upgrades, add-ons, and downgrades.
+  </Card>
+  <Card title="Blended LTV" icon="chart-pie">
+    Cross-gateway cumulative lifetime value across web, iOS, and Android subscribers.
+  </Card>
+  <Card title="Churn Anomaly Detection" icon="bell-alert">
+    Detect spikes in voluntary cancellations or payment failure involuntary churn.
+  </Card>
+</CardGroup>
+
+---
+
+## Cohort Vintage Matrix
+
+The cohort table visualizes revenue retention by month of sign-up:
+
+| Cohort | Initial MRR | Month 1 | Month 2 | Month 3 | Month 6 | Month 12 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Jan 2026** | $12,400 | 100% | 104.2% | 108.5% | 114.1% | 118.4% |
+| **Feb 2026** | $14,800 | 100% | 102.8% | 106.1% | 111.0% | -- |
+| **Mar 2026** | $18,250 | 100% | 105.4% | 109.2% | -- | -- |
+| **Apr 2026** | $21,100 | 100% | 103.9% | -- | -- | -- |
+
+### NRR Calculation Formula
+
+$$\text{NRR} = \frac{\text{Beginning MRR} + \text{Expansion MRR} - \text{Contraction MRR} - \text{Churn MRR}}{\text{Beginning MRR}} \times 100\%$$
+
+<Tip>
+  An NRR above 100% signifies net negative churn, meaning existing customer expansions outpace cancellations.
+</Tip>

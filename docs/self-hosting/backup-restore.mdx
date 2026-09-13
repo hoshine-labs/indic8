@@ -1,0 +1,40 @@
+---
+title: "Backup and Disaster Recovery"
+description: "Procedures for automated database backups, snapshots, and point-in-time recovery."
+---
+
+Reliable backups ensure your historical financial telemetry and sovereign ledger remain protected against hardware failures.
+
+## Automated Postgres Backups
+
+You can run daily automated backups using `pg_dump` wrapped in a cron job:
+
+```bash
+#!/bin/bash
+BACKUP_DIR="/var/backups/indic8"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FILENAME="$BACKUP_DIR/indic8_backup_$TIMESTAMP.sql.gz"
+
+mkdir -p $BACKUP_DIR
+
+docker exec -t indic8-postgres pg_dump -U indic8_user indic8_db | gzip > $FILENAME
+
+# Keep 30 days of retention
+find $BACKUP_DIR -type f -name "*.sql.gz" -mtime +30 -delete
+```
+
+---
+
+## Restoring from a Backup
+
+To restore your database from a compressed snapshot file:
+
+```bash
+# Decompress and stream into the Postgres container
+gunzip -c /var/backups/indic8/indic8_backup_20260913_120000.sql.gz | \
+  docker exec -i indic8-postgres psql -U indic8_user -d indic8_db
+```
+
+<Warning>
+  Restoring a backup will overwrite existing tables in the destination database. Always create a safety snapshot before performing a restore.
+</Warning>

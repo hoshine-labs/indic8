@@ -1,0 +1,56 @@
+---
+title: "Products API"
+description: "List unified products, inspect provider SKU mappings, and aggregate cross-gateway revenue."
+---
+
+## List Unified Products
+
+<ParamField path="GET /v1/products" type="endpoint">
+  Returns a paginated list of unified products with cross-provider metrics.
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="period" type="string" default="30d">
+  Time window for metrics aggregation (`today`, `7d`, `30d`, `3m`, `12m`, `lifetime`).
+</ParamField>
+
+<ParamField query="category" type="string">
+  Filter by product category (`SaaS`, `Mobile App`, `Desktop App`, `Digital Asset`).
+</ParamField>
+
+---
+
+### Response Example
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "prod_unf_89104",
+      "name": "Pro Annual Plan",
+      "slug": "pro-annual",
+      "category": "SaaS",
+      "total_revenue": 142850.00,
+      "total_sales": 1442,
+      "active_subscriptions": 1280,
+      "mrr": 11904.00,
+      "providers": [
+        {
+          "provider": "stripe",
+          "external_id": "prod_N9xLKjs9",
+          "revenue": 98400.00,
+          "sales_count": 994
+        },
+        {
+          "provider": "revenuecat",
+          "external_id": "com.acme.pro.yearly",
+          "revenue": 44450.00,
+          "sales_count": 448
+        }
+      ]
+    }
+  ]
+}
+```

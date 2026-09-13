@@ -1,0 +1,37 @@
+---
+title: "Sovereign Vault Cryptography"
+description: "Cryptographic specifications of the client-side AES-256-GCM encryption engine."
+---
+
+The Sovereign Vault ensures sensitive credentials, restricted API tokens, and customer identity hashes are isolated from telemetry collection layers.
+
+## Cryptographic Primitives
+
+Indic8 utilizes industry standard Web Crypto API primitives:
+- **Cipher**: AES-256-GCM (Galois/Counter Mode) with 128-bit authentication tags.
+- **Key Derivation**: PBKDF2 with SHA-256 and 250,000 iterations.
+- **Initialization Vector (IV)**: Unique 96-bit cryptographically secure pseudorandom number generated per operation.
+
+---
+
+## Client-Side Key Generation
+
+When creating a new workspace:
+
+```typescript
+// Web Crypto client-side key generation
+async function generateWorkspaceVaultKey(): Promise<CryptoKey> {
+  return await window.crypto.subtle.generateKey(
+    {
+      name: "AES-GCM",
+      length: 256
+    },
+    true,
+    ["encrypt", "decrypt"]
+  );
+}
+```
+
+<Note>
+  The raw symmetric encryption key never leaves the client memory in plain text. It is wrapped with your master workspace passphrase before transport.
+</Note>

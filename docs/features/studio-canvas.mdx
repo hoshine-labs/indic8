@@ -1,0 +1,61 @@
+---
+title: "Studio Canvas Milestone Cards"
+description: "Generate shareable, verified proof-of-revenue cards and social milestone banners."
+---
+
+Studio Canvas allows founders and product teams to turn verified revenue milestones into beautifully formatted social cards, pitch deck graphics, and public transparency reports.
+
+## Milestone Types
+
+Indic8 automatically flags notable financial achievements:
+- **Revenue Crossed**: Crossing $1k, $10k, $50k, $100k, $500k, or $1M gross volume.
+- **Sales Crossed**: Hitting 100, 500, 1,000, or 10,000 paid orders.
+- **Best Day / Best Month**: Breaking historical 24-hour or 30-day records.
+- **First Sale**: Celebrating the inaugural customer transaction for a new product.
+
+---
+
+## Card Customization Options
+
+<CardGroup cols={2}>
+  <Card title="Aspect Ratios" icon="image">
+    Export in 16:9 (Twitter / X Header), 1:1 (Square), 4:5 (Instagram / LinkedIn), or 9:16 (Story / Reel).
+  </Card>
+  <Card title="Theme Presets" icon="palette">
+    Choose from Obsidian Minimal, Emerald Growth, Violet Gradient, or Light Studio.
+  </Card>
+  <Card title="Verification Ribbon" icon="certificate">
+    Attach a cryptographic proof badge signed by your workspace ledger.
+  </Card>
+  <Card title="Privacy Toggles" icon="eye-slash">
+    Optionally mask exact dollar amounts and display percentage growth metrics only.
+  </Card>
+</CardGroup>
+
+---
+
+## Programmatic Card Generation
+
+You can also generate milestone graphics on-demand using the Indic8 API:
+
+```bash
+curl -X POST https://api.indic8.ing/v1/milestones/generate \
+  -H "Authorization: Bearer ind_live_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "milestone_id": "ms_rev_100k",
+    "theme": "obsidian",
+    "aspect_ratio": "16:9",
+    "include_verification_ribbon": true
+  }'
+```
+
+### Output Response
+
+```json
+{
+  "card_id": "card_gen_982a17",
+  "download_url": "https://cdn.indic8.ing/cards/ms_rev_100k_169.png",
+  "verification_url": "https://indic8.ing/verify/v_8f9104a"
+}
+```

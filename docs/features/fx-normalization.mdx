@@ -1,0 +1,54 @@
+---
+title: "Automated FX Normalization"
+description: "Real-time European Central Bank rate synchronization across 140+ global currencies."
+---
+
+When selling globally, payments arrive in dozens of regional currencies: EUR, GBP, JPY, CAD, AUD, INR, and more. Calculating consolidated MRR manually produces skewed or outdated reports.
+
+Indic8 continuously normalizes multi-currency sales into your workspace base currency at the exact second of purchase.
+
+## Supported Currencies
+
+Indic8 supports over 140 foreign currencies, with first-class reporting engines for:
+- `USD`: United States Dollar (Default)
+- `EUR`: Euro
+- `GBP`: British Pound Sterling
+- `INR`: Indian Rupee
+- `JPY`: Japanese Yen
+
+---
+
+## Rate Ingestion & Parity
+
+```
+[European Central Bank Feed]
+           │
+           ▼ (Hourly Synced + Intraday Interpolation)
+┌──────────────────────────────────────────┐
+│      Indic8 FX Precision Cache           │
+│  - Zero Arbitrary Spread (0.00%)         │
+│  - Historical Tick Index                 │
+└──────────────────┬───────────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────────┐
+│        Normalized Transaction Record     │
+│  Original: €89.00 EUR                    │
+│  Spot Rate: 1.08427                      │
+│  Normalized: $96.50 USD                  │
+└──────────────────────────────────────────┘
+```
+
+### Conversion Formula
+
+$$\text{Normalized Amount} = \text{Original Amount} \times \text{Spot Rate}(t, \text{OriginalCurrency} \to \text{BaseCurrency})$$
+
+---
+
+## Zero Spread Guarantee
+
+Unlike credit card processors that add hidden 2% to 4% foreign exchange spreads, Indic8 applies pure mid-market spot rates to ensure your financial analytics reflect real purchasing power.
+
+<Tip>
+  You can toggle your workspace base reporting currency at any time from **Settings > Preferences**. Historical totals will recalculate instantly.
+</Tip>

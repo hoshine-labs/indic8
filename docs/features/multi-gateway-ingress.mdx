@@ -1,0 +1,45 @@
+---
+title: "Multi-Gateway Ingress"
+description: "Sub-2ms webhook processing, deduplication, and atomic schema reconciliation."
+---
+
+Indic8 is engineered to process incoming webhook events from diverse payment processors at high throughput.
+
+## Pipeline Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant Gateway as Billing Provider (e.g. Stripe)
+    participant Ingress as Edge Ingress Layer
+    participant Queue as Redis Stream / BullMQ
+    participant Normalizer as Normalizer Worker
+    participant DB as Postgres Ledger
+    participant WS as WebSocket Clients
+
+    Gateway->>Ingress: POST Webhook (Payload + Signature)
+    Ingress->>Ingress: Verify HMAC Signature
+    Ingress->>Ingress: Check Redis Idempotency Key
+    Ingress-->>Gateway: 200 OK (Acknowledge < 25ms)
+    Ingress->>Queue: Push to Stream
+    Queue->>Normalizer: Consume Batch
+    Normalizer->>Normalizer: Apply FX & Scrub PII
+    Normalizer->>DB: Atomic Insert
+    Normalizer->>WS: Broadcast Live Event
+```
+
+---
+
+## Key Guarantees
+
+### 1. Sub-25ms Gateway Acknowledgments
+Payment providers like Stripe and Lemon Squeezy will disable webhooks if response latencies spike. Indic8 immediately acknowledges receipt with `200 OK` after verifying cryptographic signatures, offloading data persistence to background queues.
+
+### 2. Idempotency and Deduplication
+Network retries frequently cause duplicate webhook deliveries. Indic8 derives a composite key:
+
+$$\text{Idempotency Key} = \text{SHA256}(\text{provider} + \text{event\_id} + \text{timestamp})$$
+
+Any duplicate event received within 48 hours is acknowledged as successful but discarded before ledger mutation.
+
+### 3. Out-of-Order Resolution
+Events like `customer.subscription.deleted` can occasionally arrive before `customer.subscription.created` due to network routing anomalies. Indic8 uses optimistic locking and state reconcilers to reconstruct the true chronological state.

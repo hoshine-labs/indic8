@@ -1,0 +1,32 @@
+---
+title: "Team Workspaces & Access Control"
+description: "Manage multi-tenant workspaces, role-based access control, and granular read permissions."
+---
+
+Indic8 supports multi-tenant workspaces with role-based access control (RBAC) to ensure financial visibility is strictly governed.
+
+## Workspace Roles
+
+| Role | Financial Dashboards | Manage Integrations | Create API Keys | Export Data |
+| :--- | :--- | :--- | :--- | :--- |
+| **Owner** | Yes | Yes | Yes | Yes |
+| **Admin** | Yes | Yes | Yes | Yes |
+| **Analyst** | Yes | View Only | No | Yes |
+| **Viewer** | Yes | No | No | No |
+| **Developer**| Limited | Yes | Yes | No |
+
+---
+
+## Workspace Isolation
+
+Each workspace is logically isolated in the database:
+- Separate cryptographic salt for customer hashing.
+- Independent European Central Bank base currency settings.
+- Scoped API tokens prefixed with `ind_live_` or `ind_test_`.
+- Dedicated webhook signing secrets per gateway.
+
+---
+
+## Audit Logs
+
+All sensitive administrative events (such as adding or removing team members, rotating API keys, and initiating CSV ledger exports) are recorded in an immutable append-only audit trail available under **Settings > Audit Logs**.

@@ -1,0 +1,42 @@
+---
+title: "Apple App Store Integration"
+description: "Direct ingestion of App Store Server Notifications v2 with real-time trial conversion tracking."
+---
+
+Connect Apple App Store Server Notifications (V2) to ingest native iOS and macOS in-app purchases and subscriptions without third-party intermediaries.
+
+## Quick Setup
+
+<Steps>
+  <Step title="Get your Indic8 Webhook Ingress URL">
+    In Indic8, open **Settings > Integrations > Apple App Store**.
+    
+    Copy your URL:
+    ```url
+    https://api.indic8.ing/v1/webhooks/appstore/whk_live_your_workspace_id
+    ```
+  </Step>
+
+  <Step title="Configure in App Store Connect">
+    1. Log in to [App Store Connect](https://appstoreconnect.apple.com).
+    2. Select your App and go to **App Information**.
+    3. Scroll down to **App Store Server Notifications**.
+    4. Set **Production Server URL** to your Indic8 URL.
+    5. Set **Version** to **Version 2 Notifications**.
+  </Step>
+
+  <Step title="Provide App Store Connect Shared Secret">
+    Enter your App-Specific Shared Secret or In-App Purchase Key into Indic8 to allow cryptographic verification of Apple signed JWS payloads.
+  </Step>
+</Steps>
+
+---
+
+## Signed JWS Verification
+
+Apple V2 notifications deliver payload contents inside a signed JSON Web Signature (JWS).
+
+Indic8 verifies the x5c certificate chain against the Apple Root CA before decoding:
+- Validates the timestamp and bundle identifier.
+- Extracts `transactionId`, `originalTransactionId`, and `productIdentifier`.
+- Evaluates promotional offer redemptions and renewal states.

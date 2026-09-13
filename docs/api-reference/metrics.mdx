@@ -1,0 +1,55 @@
+---
+title: "Metrics API"
+description: "Retrieve real-time MRR, Net Revenue Retention (NRR), and foreign exchange volume totals."
+---
+
+## Get Real-Time MRR
+
+<ParamField path="GET /v1/metrics/mrr" type="endpoint">
+  Returns the current Monthly Recurring Revenue calculated across all active subscriptions.
+</ParamField>
+
+### Response Example
+
+```json
+{
+  "status": "success",
+  "data": {
+    "current_mrr": 42850.00,
+    "currency": "USD",
+    "growth_mom_pct": 14.8,
+    "active_subscribers": 1420,
+    "breakdown_by_provider": {
+      "stripe": 28400.00,
+      "polar": 6250.00,
+      "revenuecat": 8200.00
+    }
+  }
+}
+```
+
+---
+
+## Get Cohort Retention
+
+<ParamField path="GET /v1/metrics/cohorts" type="endpoint">
+  Returns historical cohort retention matrices with NRR percentages.
+</ParamField>
+
+### Response Example
+
+```json
+{
+  "status": "success",
+  "data": {
+    "cohorts": [
+      {
+        "vintage": "2026-01",
+        "starting_mrr": 12400.00,
+        "nrr_percentage": 118.4,
+        "retention_curve": [100.0, 104.2, 108.5, 114.1, 118.4]
+      }
+    ]
+  }
+}
+```

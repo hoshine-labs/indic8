@@ -1,0 +1,71 @@
+---
+title: "API Overview"
+description: "REST and WebSocket endpoints for querying revenue telemetry, managing unified products, and generating milestone cards."
+---
+
+The Indic8 API provides programmatic access to your normalized financial ledger, real-time event streams, and retention metrics.
+
+## Base URLs
+
+| Environment | Base URL |
+| :--- | :--- |
+| **Production Cloud** | `https://api.indic8.ing/v1` |
+| **Self-Hosted** | `https://your-domain.com/api/v1` |
+| **Local Development** | `http://localhost:3000/api/v1` |
+
+---
+
+## Response Format
+
+All API responses return JSON objects with a standard wrapper envelope:
+
+```json
+{
+  "status": "success",
+  "data": {},
+  "meta": {
+    "latency_ms": 1.8,
+    "timestamp": "2026-09-13T12:00:00.000Z"
+  }
+}
+```
+
+### Error Responses
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "unauthorized",
+    "message": "Invalid API key provided in Authorization header."
+  }
+}
+```
+
+---
+
+## Rate Limits
+
+| Tier | Rate Limit |
+| :--- | :--- |
+| **Free / Self-Hosted** | Unlimited (infrastructure dependent) |
+| **Managed Cloud (Standard)** | 1,200 requests per minute |
+| **Managed Cloud (Burst)** | Up to 100 requests per second |
+
+---
+
+## SDKs and Client Libraries
+
+Indic8 provides official client libraries for TypeScript/JavaScript, Python, and Go.
+
+<CardGroup cols={3}>
+  <Card title="TypeScript SDK" icon="js">
+    `npm install @indic8/sdk`
+  </Card>
+  <Card title="Python SDK" icon="python">
+    `pip install indic8`
+  </Card>
+  <Card title="Go SDK" icon="golang">
+    `go get github.com/indic8/indic8-go`
+  </Card>
+</CardGroup>

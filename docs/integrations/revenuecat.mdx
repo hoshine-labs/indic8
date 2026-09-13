@@ -1,0 +1,51 @@
+---
+title: "RevenueCat Integration"
+description: "Consolidate Apple App Store, Google Play, Stripe, and Amazon in-app purchases with RevenueCat webhooks."
+---
+
+Connect RevenueCat to stream mobile subscription lifecycles, trial conversions, and renewals directly into Indic8.
+
+## Quick Setup
+
+<Steps>
+  <Step title="Copy your Ingress URL">
+    In Indic8, go to **Settings > Integrations > RevenueCat**.
+    
+    Copy your endpoint URL:
+    ```url
+    https://api.indic8.ing/v1/webhooks/revenuecat/whk_live_your_workspace_id
+    ```
+  </Step>
+
+  <Step title="Configure Webhook in RevenueCat">
+    1. Log in to [RevenueCat](https://app.revenuecat.com).
+    2. Select your Project and go to **Project Settings > Integrations > Webhooks**.
+    3. Click **Add Webhook**.
+    4. Set the **Webhook URL** to your Indic8 endpoint.
+  </Step>
+
+  <Step title="Configure Authorization Header">
+    In the **Authorization Header Value** field, enter the authorization token provided in your Indic8 dashboard.
+  </Step>
+
+  <Step title="Select Environments">
+    Check **Production** and optionally **Sandbox** (sandbox events are isolated from live metrics).
+  </Step>
+</Steps>
+
+---
+
+## Event Mapping
+
+| RevenueCat Type | Indic8 Metric |
+| :--- | :--- |
+| `INITIAL_PURCHASE` | New Sale & First-Time Subscription MRR |
+| `RENEWAL` | Recurring Revenue Realization |
+| `CANCELLATION` | Churn Flag (Grace Period Active) |
+| `EXPIRATION` | MRR Contraction & Subscription Deleted |
+| `BILLING_ISSUE` | Past-Due Risk Alert |
+| `PRODUCT_CHANGE` | Upgrade or Downgrade Adjustment |
+
+<Tip>
+  Indic8 automatically extracts the storefront currency (`price_in_purchased_currency`) from RevenueCat events and applies European Central Bank spot rates for accurate USD/EUR conversion.
+</Tip>

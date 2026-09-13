@@ -1,0 +1,53 @@
+---
+title: "Outbound Webhooks"
+description: "Receive outbound HTTP notifications when new transactions, refunds, or milestones occur."
+---
+
+Indic8 can dispatch outbound webhook notifications to your backend systems or Slack/Discord bots whenever important financial events occur.
+
+## Event Types
+
+| Event Name | Trigger Condition |
+| :--- | :--- |
+| `transaction.recorded` | A new customer payment or subscription charge has settled |
+| `transaction.refunded` | A refund has been processed in any connected gateway |
+| `milestone.unlocked` | A workspace has crossed a major revenue or subscriber threshold |
+| `subscription.churned` | A recurring subscription has canceled or expired |
+
+---
+
+## Verifying Signatures
+
+Indic8 includes an `X-Indic8-Signature` header with each outbound request:
+
+```http
+X-Indic8-Signature: t=1726233600,v1=6a7b8c9d0e1f2a...
+```
+
+Verify the signature by computing the HMAC-SHA256 hash using your webhook endpoint signing secret:
+
+```typescript
+import crypto from 'crypto';
+
+function verifyIndic8Webhook(
+  rawBody: string,
+  signatureHeader: string,
+  secret: string
+): boolean {
+  const parts = signatureHeader.split(',');
+  const timestamp = parts.find((p) => p.startsWith('t='))?.slice(2);
+  const signature = parts.find((p) => p.startsWith('v1='))?.slice(3);
+
+  if (!timestamp || !signature) return false;
+
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(`${timestamp}.${rawBody}`)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+}
+```

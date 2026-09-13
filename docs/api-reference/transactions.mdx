@@ -1,0 +1,50 @@
+---
+title: "Transactions API"
+description: "Query normalized transactions and individual ledger records."
+---
+
+## List Transactions
+
+<ParamField path="GET /v1/transactions" type="endpoint">
+  Retrieves a filtered, paginated stream of normalized transactions.
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="limit" type="number" default="50">
+  Number of records to return (maximum 200).
+</ParamField>
+
+<ParamField query="provider" type="string">
+  Filter by billing provider (`stripe`, `polar`, `revenuecat`, `lemonsqueezy`, `apple`, `google`, `paddle`).
+</ParamField>
+
+<ParamField query="status" type="string">
+  Transaction state (`succeeded`, `refunded`, `disputed`).
+</ParamField>
+
+---
+
+### Response Example
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "tx_norm_89a012b",
+      "provider": "stripe",
+      "product_name": "Pro Subscription",
+      "gross_amount": 49.00,
+      "original_currency": "USD",
+      "normalized_amount": 49.00,
+      "base_currency": "USD",
+      "fx_rate": 1.0000,
+      "customer_country": "US",
+      "type": "subscription",
+      "status": "succeeded",
+      "timestamp": "2026-09-13T12:00:00Z"
+    }
+  ]
+}
+```

@@ -1,0 +1,30 @@
+---
+title: "Zero-PII Storage Guarantee"
+description: "Explicit data dictionary outlining stored attributes versus permanently scrubbed PII."
+---
+
+Indic8 provides a contractual and technical guarantee that end-customer Personally Identifiable Information (PII) is permanently stripped prior to disk persistence.
+
+## Data Attribute Matrix
+
+| Data Field | Stored by Indic8 | Processing Treatment |
+| :--- | :--- | :--- |
+| **Credit Card Numbers** | **Never (0 bytes)** | Stripped in edge memory before normalization |
+| **Card Expiration & CVV** | **Never (0 bytes)** | Stripped in edge memory |
+| **Customer Full Name** | **Never** | Discarded entirely |
+| **Physical Billing Address** | **Never** | Discarded entirely |
+| **Customer IP Address** | **Never** | Discarded after DDoS / edge rate check |
+| **Customer Email** | **Never** | Replaced with irreversible salted SHA-256 hash |
+| **Customer Country** | **Yes** | Retained as ISO-3166 code (e.g. `US`, `DE`, `JP`) |
+| **Transaction Amount & Currency** | **Yes** | Recorded in ledger for MRR/revenue analytics |
+| **Timestamp & Gateway ID** | **Yes** | Stored for financial audit reconciliation |
+
+---
+
+## Salted Hash Anonymization
+
+Customer emails are transformed into non-reversible IDs:
+
+$$\text{Customer Hash} = \text{HMAC-SHA256}(\text{Workspace Salt}, \text{Normalized Email})$$
+
+Because the salt is unique per workspace and never exposed, rainbow table attacks and cross-workspace customer tracking are mathematically impossible.

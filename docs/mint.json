@@ -1,0 +1,136 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Indic8",
+  "logo": {
+    "dark": "/assets/logo-dark.svg",
+    "light": "/assets/logo-light.svg",
+    "href": "https://indic8.ing"
+  },
+  "favicon": "/assets/favicon.svg",
+  "colors": {
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5",
+    "anchors": {
+      "from": "#6366F1",
+      "to": "#10B981"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Website",
+      "url": "https://indic8.ing"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com/indic8"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Launch App",
+    "url": "https://app.indic8.ing"
+  },
+  "tabs": [
+    {
+      "name": "Getting Started",
+      "url": "introduction"
+    },
+    {
+      "name": "Integrations",
+      "url": "integrations"
+    },
+    {
+      "name": "Features",
+      "url": "features"
+    },
+    {
+      "name": "Self-Hosting",
+      "url": "self-hosting"
+    },
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "Security",
+      "url": "security"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "architecture",
+        "concepts"
+      ]
+    },
+    {
+      "group": "Gateway Integrations",
+      "pages": [
+        "integrations/overview",
+        "integrations/stripe",
+        "integrations/polar",
+        "integrations/revenuecat",
+        "integrations/lemon-squeezy",
+        "integrations/app-store",
+        "integrations/google-play",
+        "integrations/paddle",
+        "integrations/custom-webhooks"
+      ]
+    },
+    {
+      "group": "Core Capabilities",
+      "pages": [
+        "features/multi-gateway-ingress",
+        "features/fx-normalization",
+        "features/zero-pii-vault",
+        "features/cohort-retention",
+        "features/studio-canvas",
+        "features/team-workspaces"
+      ]
+    },
+    {
+      "group": "Deployment & Operations",
+      "pages": [
+        "self-hosting/docker-compose",
+        "self-hosting/vercel-neon",
+        "self-hosting/environment-variables",
+        "self-hosting/database-migrations",
+        "self-hosting/backup-restore"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/overview",
+        "api-reference/authentication",
+        "api-reference/events",
+        "api-reference/products",
+        "api-reference/transactions",
+        "api-reference/metrics",
+        "api-reference/milestones",
+        "api-reference/webhooks"
+      ]
+    },
+    {
+      "group": "Privacy & Trust",
+      "pages": [
+        "security/sovereign-vault",
+        "security/zero-pii-guarantee",
+        "security/compliance"
+      ]
+    }
+  ],
+  "api": {
+    "baseUrl": "https://api.indic8.ing/v1",
+    "auth": {
+      "method": "bearer"
+    }
+  },
+  "footerSocials": {
+    "github": "https://github.com/indic8",
+    "x": "https://x.com/indic8"
+  }
+}

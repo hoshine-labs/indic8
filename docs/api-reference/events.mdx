@@ -1,0 +1,68 @@
+---
+title: "Events API"
+description: "Ingest custom events and subscribe to real-time WebSocket telemetry streams."
+---
+
+## Ingest Event
+
+<ParamField path="POST /v1/events/ingest" type="endpoint">
+  Ingests a raw or normalized financial event into the ledger.
+</ParamField>
+
+### Request Body
+
+<ParamField body="provider" type="string" required>
+  Gateway source name (`stripe`, `polar`, `revenuecat`, `lemonsqueezy`, `apple`, `google`, `custom`).
+</ParamField>
+
+<ParamField body="event_type" type="string" required>
+  Event classification (`transaction.sale`, `subscription.new`, `transaction.refund`, `subscription.churn`).
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Transaction gross value in the original currency.
+</ParamField>
+
+<ParamField body="currency" type="string" required>
+  Three-letter ISO 4217 currency code (e.g. `USD`, `EUR`, `GBP`).
+</ParamField>
+
+<ParamField body="product_id" type="string">
+  External or internal product SKU identifier.
+</ParamField>
+
+---
+
+### Example cURL
+
+```bash
+curl -X POST https://api.indic8.ing/v1/events/ingest \
+  -H "Authorization: Bearer ind_live_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "custom",
+    "event_type": "transaction.sale",
+    "amount": 99.00,
+    "currency": "USD",
+    "product_id": "prod_enterprise_annual"
+  }'
+```
+
+---
+
+## Real-Time WebSocket Feed
+
+Subscribe to low-latency financial updates in browser dashboards or terminal tools.
+
+```javascript
+const ws = new WebSocket('wss://api.indic8.ing/v1/events/stream', {
+  headers: {
+    Authorization: 'Bearer ind_live_your_key'
+  }
+});
+
+ws.onmessage = (event) => {
+  const transaction = JSON.parse(event.data);
+  console.log('Live Transaction Received:', transaction);
+};
+```

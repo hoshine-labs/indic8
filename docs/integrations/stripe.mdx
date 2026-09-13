@@ -1,0 +1,79 @@
+---
+title: "Stripe Integration"
+description: "Connect your Stripe account to stream charges, subscriptions, invoices, and dispute events."
+---
+
+Connect Stripe to Indic8 to unify one-time checkout sessions, recurring customer subscriptions, metered invoices, and chargebacks.
+
+## Quick Setup
+
+<Steps>
+  <Step title="Retrieve your Indic8 Webhook Ingress URL">
+    In the Indic8 dashboard, navigate to **Settings > Integrations > Stripe**.
+    
+    Copy your endpoint URL:
+    ```url
+    https://api.indic8.ing/v1/webhooks/stripe/whk_live_your_workspace_id
+    ```
+  </Step>
+
+  <Step title="Add an Endpoint in Stripe Dashboard">
+    1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com).
+    2. Go to **Developers > Webhooks**.
+    3. Click **Add an endpoint**.
+    4. Paste the URL copied in Step 1.
+  </Step>
+
+  <Step title="Select Events to Listen For">
+    Select the following required events:
+    
+    - `checkout.session.completed`
+    - `charge.succeeded`
+    - `charge.refunded`
+    - `charge.dispute.created`
+    - `customer.subscription.created`
+    - `customer.subscription.updated`
+    - `customer.subscription.deleted`
+    - `invoice.paid`
+    - `invoice.payment_failed`
+  </Step>
+
+  <Step title="Save and Copy the Webhook Signing Secret">
+    After creating the endpoint, reveal the **Signing secret** (starts with `whsec_...`).
+    
+    Paste this key into the Indic8 Stripe integration settings modal and click **Save**.
+  </Step>
+</Steps>
+
+---
+
+## Historical Data Backfill (Optional)
+
+To ingest historical transactions and compute backward-looking MRR:
+
+1. In Stripe, go to **Developers > API keys**.
+2. Click **Create restricted key**.
+3. Grant **Read** access for:
+   - `Charges`
+   - `Customer balance transactions`
+   - `Disputes`
+   - `Invoices`
+   - `Subscriptions`
+   - `Products`
+4. Paste the key (`rk_live_...`) into Indic8 and click **Start Historical Sync**.
+
+---
+
+## Event Mapping Reference
+
+| Stripe Event | Indic8 Classification | Financial Impact |
+| :--- | :--- | :--- |
+| `checkout.session.completed` | `transaction.sale` | Added to Gross Volume |
+| `charge.refunded` | `transaction.refund` | Deducted from Net Volume |
+| `customer.subscription.created` | `subscription.new` | Increases MRR |
+| `customer.subscription.deleted` | `subscription.churn` | Deducts from MRR |
+| `charge.dispute.created` | `transaction.dispute` | Flagged for review |
+
+<Tip>
+  Stripe test-mode events (`whsec_test_...` or test API keys) are automatically routed to the Indic8 Sandbox view and will not distort your production metrics.
+</Tip>
