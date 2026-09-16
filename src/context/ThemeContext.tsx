@@ -13,6 +13,7 @@ import { flushSync } from "react-dom";
 import {
   ThemeTokens,
   DarkThemePreset,
+  DARK_THEMES,
   ACTIVE_DARK_THEME_KEYWORD,
   getThemeTokens,
   applyThemeToDocument,
@@ -89,31 +90,52 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [systemIsDark, setSystemIsDark] = useState<boolean>(true);
 
   useEffect(() => {
-    // Read saved preference on client mount
-    try {
-      const savedTheme = localStorage.getItem("indic8-theme") as ThemeMode | null;
-      if (
-        savedTheme &&
-        (savedTheme === "light" ||
-          savedTheme === "dark" ||
-          savedTheme === "system")
-      ) {
-        setThemeState(savedTheme);
-      }
-      const savedPreset = localStorage.getItem(
-        "indic8-dark-preset"
-      ) as DarkThemePreset | null;
-      if (savedPreset) {
-        setDarkPresetState(savedPreset);
-      }
-    } catch {}
+    let resolvedTheme: ThemeMode = "dark";
+    let resolvedPreset: DarkThemePreset = ACTIVE_DARK_THEME_KEYWORD;
+    let prefersDark = true;
 
     if (typeof window !== "undefined") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      setSystemIsDark(mediaQuery.matches);
+      prefersDark = mediaQuery.matches;
+      setSystemIsDark(prefersDark);
+
+      try {
+        const savedTheme = localStorage.getItem("indic8-theme") as ThemeMode | null;
+        if (
+          savedTheme &&
+          (savedTheme === "light" ||
+            savedTheme === "dark" ||
+            savedTheme === "system")
+        ) {
+          resolvedTheme = savedTheme;
+          setThemeState(savedTheme);
+        }
+        const savedPreset = localStorage.getItem(
+          "indic8-dark-preset"
+        ) as DarkThemePreset | null;
+        if (savedPreset && (savedPreset in DARK_THEMES || savedPreset.startsWith("neutral-"))) {
+          resolvedPreset = savedPreset;
+          setDarkPresetState(savedPreset);
+        } else {
+          resolvedPreset = ACTIVE_DARK_THEME_KEYWORD;
+          setDarkPresetState(ACTIVE_DARK_THEME_KEYWORD);
+        }
+      } catch {}
+
+      // Immediately synchronize and apply theme tokens on mount
+      const isDarkNow =
+        resolvedTheme === "dark"
+          ? true
+          : resolvedTheme === "light"
+          ? false
+          : prefersDark;
+      applyThemeToDocument(isDarkNow, resolvedPreset);
 
       const handleSystemChange = (e: MediaQueryListEvent) => {
         setSystemIsDark(e.matches);
+        if (resolvedTheme === "system") {
+          applyThemeToDocument(e.matches, resolvedPreset);
+        }
       };
 
       mediaQuery.addEventListener("change", handleSystemChange);

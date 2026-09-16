@@ -228,7 +228,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="flex items-center gap-2 pt-0.5">
         {/* Provider Logo Container */}
         <div className="w-9 h-9 rounded-[10px] bg-surface-subtle border border-border-default/50 flex items-center justify-center shrink-0 shadow-xs">
-          <BrandIcon provider={activeProvider} className="w-4 h-4" colored={true} />
+          <BrandIcon provider={activeProvider} className="w-5.5 h-5.5" colored={true} />
         </div>
 
         {/* Details Button */}

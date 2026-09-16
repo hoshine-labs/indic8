@@ -84,20 +84,42 @@ interface ShareExportModalProps {
 
 export const ShareExportModal: React.FC<ShareExportModalProps> = ({
   post,
+  styleId,
   isOpen,
   onClose,
 }) => {
   const { loadMilestoneIntoStudio } = useIndic8Store();
   
-  // Active Aspect Ratio string (Default: 4:5 Portrait)
-  const [selectedRatio, setSelectedRatio] = useState<string>("4:5");
-  const [selectedName, setSelectedName] = useState<string>("Portrait");
+  // Active Aspect Ratio string (defaults to post's natural ratio e.g. 16:9 for Medal, 4:5 for Claymorphism)
+  const initialRatio = post?.aspectRatio || (styleId === 2 ? "16:9" : "4:5");
+  const [selectedRatio, setSelectedRatio] = useState<string>(initialRatio);
+  const [selectedName, setSelectedName] = useState<string>(initialRatio === "16:9" ? "Widescreen" : "Portrait");
+  const [isUserFormatChange, setIsUserFormatChange] = useState(false);
   const [search, setSearch] = useState("");
   const [quality, setQuality] = useState<1 | 2 | 3 | 4>(1); // Default 1x
   const [isExporting, setIsExporting] = useState(false);
   const [isCopyingImage, setIsCopyingImage] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // Sync aspect ratio when post changes
+  React.useEffect(() => {
+    if (post) {
+      const r = post.aspectRatio || (styleId === 2 ? "16:9" : "4:5");
+      setSelectedRatio(r);
+      setSelectedName(r === "16:9" ? "Widescreen" : "Portrait");
+      setIsUserFormatChange(false);
+    }
+  }, [post, styleId]);
+
+  // Close on Escape key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   // Search filtering
   const filteredCommon = useMemo(() => {
@@ -189,35 +211,25 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = ({
 
   // Format selection handler
   const handleSelectFormat = (format: FormatPresetItem) => {
+    setIsUserFormatChange(true);
     const actualRatio = format.aspectRatio === "Auto" ? "4:5" : format.aspectRatio;
     setSelectedRatio(actualRatio);
     setSelectedName(format.name);
   };
 
-  // Direct Vector SVG High-Resolution Rasterization Helpers
-  const getHighResPngDataUrl = async (targetWidth: number, targetHeight: number): Promise<string> => {
-    if (!previewRef.current) throw new Error("No preview ref");
-    const svgElement = previewRef.current.querySelector("svg");
-    if (!svgElement) {
-      return toPng(previewRef.current, {
-        cacheBust: true,
-        pixelRatio: quality * 2,
-        quality: 1,
-      });
-    }
-
-    try {
-      const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-      svgClone.setAttribute("width", targetWidth.toString());
-      svgClone.setAttribute("height", targetHeight.toString());
-
-      // Convert any non-data images to data URI to avoid tainting canvas
-      const images = Array.from(svgClone.querySelectorAll("image"));
-      for (const imgEl of images) {
-        const href = imgEl.getAttribute("href") || imgEl.getAttribute("xlink:href");
-        if (href && !href.startsWith("data:")) {
-          try {
-            const res = await fetch(href, { mode: "cors" });
+  // Helper: Convert proxy image URLs to data URIs within cloned SVG for clean export
+  const convertImagesToDataUris = async (svgClone: SVGSVGElement) => {
+    const images = Array.from(svgClone.querySelectorAll("image"));
+    for (const imgEl of images) {
+      const href = imgEl.getAttribute("href") || imgEl.getAttribute("xlink:href");
+      if (href && !href.startsWith("data:")) {
+        try {
+          // Route external URLs through our CORS proxy
+          const fetchUrl = href.startsWith("http")
+            ? `/api/image-proxy?url=${encodeURIComponent(href)}`
+            : href;
+          const res = await fetch(fetchUrl);
+          if (res.ok) {
             const blob = await res.blob();
             const dataUrl = await new Promise<string>((resolve, reject) => {
               const reader = new FileReader();
@@ -226,55 +238,157 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = ({
               reader.readAsDataURL(blob);
             });
             imgEl.setAttribute("href", dataUrl);
-          } catch {
-            // If CORS restricts fetch, remove the external href to avoid tainting
+            imgEl.removeAttribute("xlink:href");
+          } else {
             imgEl.removeAttribute("href");
             imgEl.removeAttribute("xlink:href");
           }
+        } catch {
+          imgEl.removeAttribute("href");
+          imgEl.removeAttribute("xlink:href");
+        }
+      }
+    }
+  };
+
+  // Helper: Render SVG string → high-res canvas at exact target dimensions
+  const rasterizeSvgToCanvas = async (
+    svgString: string,
+    targetWidth: number,
+    targetHeight: number,
+    bgColor: string
+  ): Promise<HTMLCanvasElement> => {
+    // Ensure web fonts are ready before rasterization
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      // Set explicit dimensions so the browser renders at full resolution
+      img.width = targetWidth;
+      img.height = targetHeight;
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext("2d", { alpha: false });
+          if (!ctx) {
+            URL.revokeObjectURL(url);
+            reject(new Error("Canvas context unavailable"));
+            return;
+          }
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(0, 0, targetWidth, targetHeight);
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+          URL.revokeObjectURL(url);
+          resolve(canvas);
+        } catch (err) {
+          URL.revokeObjectURL(url);
+          reject(err);
+        }
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(url);
+        reject(err);
+      };
+      img.src = url;
+    });
+  };
+
+  // Direct Vector SVG High-Resolution Rasterization Helpers
+  const getHighResPngDataUrl = async (targetWidth: number, targetHeight: number): Promise<string> => {
+    if (!previewRef.current) throw new Error("No preview ref");
+
+    // For Style 1 (which embeds Indic8Chart), use html-to-image to capture full DOM & chart faithfully
+    if (styleId !== 2) {
+      const clientW = previewRef.current.clientWidth || 380;
+      return toPng(previewRef.current, {
+        cacheBust: true,
+        pixelRatio: targetWidth / clientW,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
+        quality: 1,
+      });
+    }
+
+    const svgElement = previewRef.current.querySelector("svg");
+    if (!svgElement) {
+      const clientW = previewRef.current.clientWidth || 380;
+      return toPng(previewRef.current, {
+        cacheBust: true,
+        pixelRatio: targetWidth / clientW,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
+        quality: 1,
+      });
+    }
+
+    try {
+      const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+
+      // Ensure proper XML namespace declarations for standalone serialization
+      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+      // Set explicit pixel dimensions for the rasterizer
+      svgClone.setAttribute("width", targetWidth.toString());
+      svgClone.setAttribute("height", targetHeight.toString());
+
+      // Remove any CSS class references that won't resolve outside the DOM
+      svgClone.removeAttribute("class");
+      svgClone.style.cssText = "";
+
+      // Inject font-face CSS into the SVG so fonts are available in the blob context
+      const styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
+      // Collect @font-face rules from the page's stylesheets
+      const fontFaces: string[] = [];
+      try {
+        for (const sheet of document.styleSheets) {
+          try {
+            for (const rule of sheet.cssRules) {
+              if (rule instanceof CSSFontFaceRule) {
+                const ruleText = rule.cssText;
+                // Only include Geist and Inter fonts used in our SVG
+                if (ruleText.includes("Geist") || ruleText.includes("Inter")) {
+                  fontFaces.push(ruleText);
+                }
+              }
+            }
+          } catch { /* cross-origin sheets may throw */ }
+        }
+      } catch { /* ignore */ }
+      if (fontFaces.length > 0) {
+        styleEl.textContent = fontFaces.join("\n");
+        const defsEl = svgClone.querySelector("defs");
+        if (defsEl) {
+          defsEl.insertBefore(styleEl, defsEl.firstChild);
+        } else {
+          svgClone.insertBefore(styleEl, svgClone.firstChild);
         }
       }
 
-      const svgString = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(svgBlob);
+      // Convert proxy/external images to embedded data URIs
+      await convertImagesToDataUris(svgClone);
 
-      return await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-            const ctx = canvas.getContext("2d", { alpha: false });
-            if (!ctx) {
-              URL.revokeObjectURL(url);
-              reject(new Error("Canvas context unavailable"));
-              return;
-            }
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
-            ctx.fillStyle = "#F2F2F2";
-            ctx.fillRect(0, 0, targetWidth, targetHeight);
-            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-            const dataUrl = canvas.toDataURL("image/png", 1.0);
-            URL.revokeObjectURL(url);
-            resolve(dataUrl);
-          } catch (err) {
-            URL.revokeObjectURL(url);
-            reject(err);
-          }
-        };
-        img.onerror = (err) => {
-          URL.revokeObjectURL(url);
-          reject(err);
-        };
-        img.src = url;
-      });
-    } catch {
-      // Safe fallback to html-to-image
+      const svgString = new XMLSerializer().serializeToString(svgClone);
+      const bgColor = styleId === 2 ? "#FFFFFE" : "#F2F2F2";
+      const canvas = await rasterizeSvgToCanvas(svgString, targetWidth, targetHeight, bgColor);
+      return canvas.toDataURL("image/png", 1.0);
+    } catch (e) {
+      console.warn("Direct SVG rasterization fallback:", e);
+      const clientW = previewRef.current.clientWidth || 380;
       return toPng(previewRef.current, {
         cacheBust: true,
-        pixelRatio: quality * 2,
+        pixelRatio: targetWidth / clientW,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
         quality: 1,
       });
     }
@@ -282,11 +396,29 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = ({
 
   const getHighResPngBlob = async (targetWidth: number, targetHeight: number): Promise<Blob> => {
     if (!previewRef.current) throw new Error("No preview ref");
-    const svgElement = previewRef.current.querySelector("svg");
-    if (!svgElement) {
+
+    // For Style 1 (which embeds Indic8Chart), use html-to-image to capture full DOM & chart faithfully
+    if (styleId !== 2) {
+      const clientW = previewRef.current.clientWidth || 380;
       const b = await toBlob(previewRef.current, {
         cacheBust: true,
-        pixelRatio: quality * 2,
+        pixelRatio: targetWidth / clientW,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
+        quality: 1,
+      });
+      if (b) return b;
+      throw new Error("Failed to generate blob");
+    }
+
+    const svgElement = previewRef.current.querySelector("svg");
+    if (!svgElement) {
+      const clientW = previewRef.current.clientWidth || 380;
+      const b = await toBlob(previewRef.current, {
+        cacheBust: true,
+        pixelRatio: targetWidth / clientW,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
         quality: 1,
       });
       if (b) return b;
@@ -295,78 +427,71 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = ({
 
     try {
       const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
+
+      // Ensure proper XML namespace declarations for standalone serialization
+      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+      // Set explicit pixel dimensions for the rasterizer
       svgClone.setAttribute("width", targetWidth.toString());
       svgClone.setAttribute("height", targetHeight.toString());
 
-      // Convert any non-data images to data URI to avoid tainting canvas
-      const images = Array.from(svgClone.querySelectorAll("image"));
-      for (const imgEl of images) {
-        const href = imgEl.getAttribute("href") || imgEl.getAttribute("xlink:href");
-        if (href && !href.startsWith("data:")) {
+      // Remove any CSS class references that won't resolve outside the DOM
+      svgClone.removeAttribute("class");
+      svgClone.style.cssText = "";
+
+      // Inject font-face CSS into the SVG so fonts are available in the blob context
+      const styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
+      const fontFaces: string[] = [];
+      try {
+        for (const sheet of document.styleSheets) {
           try {
-            const res = await fetch(href, { mode: "cors" });
-            const blob = await res.blob();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            imgEl.setAttribute("href", dataUrl);
-          } catch {
-            imgEl.removeAttribute("href");
-            imgEl.removeAttribute("xlink:href");
-          }
+            for (const rule of sheet.cssRules) {
+              if (rule instanceof CSSFontFaceRule) {
+                const ruleText = rule.cssText;
+                if (ruleText.includes("Geist") || ruleText.includes("Inter")) {
+                  fontFaces.push(ruleText);
+                }
+              }
+            }
+          } catch { /* cross-origin sheets may throw */ }
+        }
+      } catch { /* ignore */ }
+      if (fontFaces.length > 0) {
+        styleEl.textContent = fontFaces.join("\n");
+        const defsEl = svgClone.querySelector("defs");
+        if (defsEl) {
+          defsEl.insertBefore(styleEl, defsEl.firstChild);
+        } else {
+          svgClone.insertBefore(styleEl, svgClone.firstChild);
         }
       }
 
+      // Convert proxy/external images to embedded data URIs
+      await convertImagesToDataUris(svgClone);
+
       const svgString = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(svgBlob);
+      const bgColor = styleId === 2 ? "#FFFFFE" : "#F2F2F2";
+      const canvas = await rasterizeSvgToCanvas(svgString, targetWidth, targetHeight, bgColor);
 
       return await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-            const ctx = canvas.getContext("2d", { alpha: false });
-            if (!ctx) {
-              URL.revokeObjectURL(url);
-              reject(new Error("Canvas context unavailable"));
-              return;
-            }
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
-            ctx.fillStyle = "#F2F2F2";
-            ctx.fillRect(0, 0, targetWidth, targetHeight);
-            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-            canvas.toBlob(
-              (blob) => {
-                URL.revokeObjectURL(url);
-                if (blob) resolve(blob);
-                else reject(new Error("Blob generation failed"));
-              },
-              "image/png",
-              1.0
-            );
-          } catch (err) {
-            URL.revokeObjectURL(url);
-            reject(err);
-          }
-        };
-        img.onerror = (err) => {
-          URL.revokeObjectURL(url);
-          reject(err);
-        };
-        img.src = url;
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Blob generation failed"));
+          },
+          "image/png",
+          1.0
+        );
       });
-    } catch {
-      // Safe fallback to html-to-image
+    } catch (e) {
+      console.warn("Direct SVG blob rasterization fallback:", e);
+      const clientW = previewRef.current.clientWidth || 380;
       const b = await toBlob(previewRef.current, {
         cacheBust: true,
-        pixelRatio: quality * 2,
+        pixelRatio: targetWidth / clientW,
+        canvasWidth: targetWidth,
+        canvasHeight: targetHeight,
         quality: 1,
       });
       if (b) return b;
@@ -431,10 +556,13 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs select-none animate-in fade-in duration-200">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs select-none animate-in fade-in duration-200 cursor-pointer"
+    >
       {/* Fixed Dimension Modal Shell */}
       <div
-        className="relative w-full max-w-[980px] h-[640px] flex flex-col rounded-[24px] border border-border-default bg-surface-canvas shadow-2xl overflow-hidden text-brand-primary"
+        className="relative w-full max-w-[980px] h-[640px] flex flex-col rounded-[24px] border border-border-default bg-surface-canvas shadow-2xl overflow-hidden text-brand-primary cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -467,13 +595,15 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = ({
                 style={{
                   width: stageStyles.width,
                   height: stageStyles.height,
-                  aspectRatio: stageStyles.ratioStr,
                 }}
-                className="relative bg-[#F2F2F2] shadow-2xl overflow-hidden rounded-none transition-all duration-250 ease-out flex items-center justify-center"
+                className={`relative ${styleId === 2 ? "bg-transparent" : "bg-[#F2F2F2]"} shadow-2xl overflow-hidden rounded-none flex items-center justify-center ${
+                  isUserFormatChange ? "transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]" : ""
+                }`}
               >
-                <div ref={previewRef} className="w-full h-full">
+                <div ref={previewRef} className="w-full h-full flex items-center justify-center">
                   <GalleryCanvasGraphic
                     post={post}
+                    styleId={styleId}
                     aspectRatio={selectedRatio as any}
                     isUnrounded={true}
                     className="w-full h-full"

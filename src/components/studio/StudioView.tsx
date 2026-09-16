@@ -12,6 +12,7 @@ import { FloatingControlDock } from "@/components/studio/FloatingControlDock";
 import { LayoutPreset } from "@/lib/constants";
 import { MilestoneTemplate, FormatPreset } from "@/lib/platforms";
 import { useIndic8Store } from "@/lib/indic8Store";
+import { LocalPreferences } from "@/lib/storage/localPreferences";
 import { toPng } from "html-to-image";
 import confetti from "canvas-confetti";
 
@@ -25,37 +26,61 @@ export const StudioView: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   // Core Studio State with initial milestone hydration
-  const [canvasState, setCanvasState] = useState<StudioCanvasState>(() => ({
-    numericValue: studioLoadedMilestone?.numericValue ?? 100000,
-    currencySymbol: studioLoadedMilestone?.currencySymbol ?? "$",
-    currencyCode: studioLoadedMilestone?.currencyCode ?? "USD",
-    prefix: studioLoadedMilestone?.prefix ?? "",
-    suffix: studioLoadedMilestone?.suffix ?? " ARR",
-    metricLabel: studioLoadedMilestone?.metricLabel ?? "Annual Recurring Revenue",
-    subtext: studioLoadedMilestone?.subtext ?? "First 6-figure milestone unlocked",
-    companyName: "indic8",
-    creatorHandle: "@founder",
-    avatarUrl: "",
-    backdropId: studioLoadedMilestone?.backdropId ?? "midnight-obsidian",
-    frameType: "keynote",
-    aspectRatio: "16:9",
-    ratioStr: "16 / 9",
-    chartStyle: "wave",
-    verifiedSource: studioLoadedMilestone?.verifiedSource ?? "stripe",
-    templateStyle: "stripe-card",
-    showGrain: true,
-    tiltX: 0,
-    tiltY: 0,
-    tiltZ: 0,
-    scale: 1,
-    perspective: 1000,
-    borderRadius: 24,
-    shadowIntensity: "spread",
-    growthDelta: studioLoadedMilestone?.growthDelta ?? "+124% YoY",
-    zoomScale: 1.0,
-    accentColor: studioLoadedMilestone?.accentColor ?? "#635BFF",
-    backdropBlur: 0,
-  }));
+  const [canvasState, setCanvasState] = useState<StudioCanvasState>(() => {
+    const customAvatar = typeof window !== "undefined" ? LocalPreferences.get("customAvatarUrl") : "";
+    const customName = typeof window !== "undefined" ? LocalPreferences.get("customDisplayName") : "";
+    return {
+      numericValue: studioLoadedMilestone?.numericValue ?? 100000,
+      currencySymbol: studioLoadedMilestone?.currencySymbol ?? "$",
+      currencyCode: studioLoadedMilestone?.currencyCode ?? "USD",
+      prefix: studioLoadedMilestone?.prefix ?? "",
+      suffix: studioLoadedMilestone?.suffix ?? " ARR",
+      metricLabel: studioLoadedMilestone?.metricLabel ?? "Annual Recurring Revenue",
+      subtext: studioLoadedMilestone?.subtext ?? "First 6-figure milestone unlocked",
+      companyName: customName || "indic8",
+      creatorHandle: customName ? `@${customName.toLowerCase().replace(/\s+/g, "")}` : "@founder",
+      avatarUrl: customAvatar || "",
+      backdropId: studioLoadedMilestone?.backdropId ?? "midnight-obsidian",
+      frameType: "keynote",
+      aspectRatio: "16:9",
+      ratioStr: "16 / 9",
+      chartStyle: "wave",
+      verifiedSource: studioLoadedMilestone?.verifiedSource ?? "stripe",
+      templateStyle: "stripe-card",
+      showGrain: true,
+      tiltX: 0,
+      tiltY: 0,
+      tiltZ: 0,
+      scale: 1,
+      perspective: 1000,
+      borderRadius: 24,
+      shadowIntensity: "spread",
+      growthDelta: studioLoadedMilestone?.growthDelta ?? "+124% YoY",
+      zoomScale: 1.0,
+      accentColor: studioLoadedMilestone?.accentColor ?? "#635BFF",
+      backdropBlur: 0,
+    };
+  });
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const customAvatar = LocalPreferences.get("customAvatarUrl");
+      const customName = LocalPreferences.get("customDisplayName");
+      if (customAvatar) {
+        setCanvasState((prev) => ({
+          ...prev,
+          avatarUrl: customAvatar,
+          ...(customName ? { companyName: customName, creatorHandle: `@${customName.toLowerCase().replace(/\s+/g, "")}` } : {}),
+        }));
+      }
+    };
+    window.addEventListener("indic8_profile_updated", handleProfileUpdate);
+    window.addEventListener("storage", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("indic8_profile_updated", handleProfileUpdate);
+      window.removeEventListener("storage", handleProfileUpdate);
+    };
+  }, []);
 
   // Timeline / Motion Playback State
   const [isPlaying, setIsPlaying] = useState(false);

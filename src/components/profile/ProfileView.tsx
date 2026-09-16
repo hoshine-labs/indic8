@@ -7,6 +7,7 @@ import { useIndic8Store } from "@/lib/indic8Store";
 import { BrandIcon } from "@/lib/brandLogos";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { SyncedAvatar } from "@/components/ui/SyncedAvatar";
+import { LocalPreferences } from "@/lib/storage/localPreferences";
 import {
   UserIcon,
   EnvelopeIcon,
@@ -27,6 +28,22 @@ export const ProfileView: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isConfirmLogoutOpen, setIsConfirmLogoutOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [customAvatar, setCustomAvatar] = useState<string | undefined>(undefined);
+  const [customName, setCustomName] = useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    const updateLocalProfile = () => {
+      setCustomAvatar(LocalPreferences.get("customAvatarUrl"));
+      setCustomName(LocalPreferences.get("customDisplayName"));
+    };
+    updateLocalProfile();
+    window.addEventListener("indic8_profile_updated", updateLocalProfile);
+    window.addEventListener("storage", updateLocalProfile);
+    return () => {
+      window.removeEventListener("indic8_profile_updated", updateLocalProfile);
+      window.removeEventListener("storage", updateLocalProfile);
+    };
+  }, []);
 
   const handleConfirmSignOut = async () => {
     setIsSigningOut(true);
@@ -90,7 +107,9 @@ export const ProfileView: React.FC = () => {
   }
 
   const user = session.user;
-  const userInitials = (user.name || user.email || "U")
+  const effectiveAvatar = customAvatar || user.image;
+  const effectiveName = customName || user.name || (user.email ? user.email.split("@")[0] : "User");
+  const userInitials = (effectiveName || "U")
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -113,8 +132,8 @@ export const ProfileView: React.FC = () => {
           {/* Round Profile Picture (Synchronized Master GIF playback) */}
           <div className="w-20 h-20 md:w-22 md:h-22 rounded-full overflow-hidden border-2 border-border-default shadow-sm shrink-0">
             <SyncedAvatar
-              src={user.image}
-              alt={user.name || "Profile"}
+              src={effectiveAvatar}
+              alt={effectiveName}
               fallbackText={userInitials}
               className="w-full h-full"
               fallbackClassName="w-full h-full bg-surface-subtle flex items-center justify-center text-brand-primary font-bold text-2xl"
@@ -124,7 +143,7 @@ export const ProfileView: React.FC = () => {
           {/* Name & Email */}
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-brand-primary tracking-tight">
-              {user.name || "User"}
+              {effectiveName}
             </h1>
             <p className="text-xs text-brand-secondary font-mono">{user.email}</p>
           </div>

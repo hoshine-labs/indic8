@@ -56,7 +56,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Encrypt credentials
-    const encryptedPayload = encryptCredentials(credentials);
+    const fullCredentials = {
+      ...credentials,
+      accountId: validation.accountId || credentials.accountId,
+      accountName: validation.accountName || credentials.accountName,
+    };
+    const encryptedPayload = encryptCredentials(fullCredentials);
 
     const connectionId = `conn_${providerId}_${Date.now()}`;
     const nowIso = new Date().toISOString();
@@ -107,7 +112,7 @@ export async function POST(req: NextRequest) {
     // 4. Initial Sync
     let syncPayload: ProviderSyncPayload = { products: [], transactions: [], subscriptions: [], customers: [] };
     try {
-      syncPayload = await adapter.fetchSyncData(credentials);
+      syncPayload = await adapter.fetchSyncData(fullCredentials);
     } catch (syncErr) {
       console.warn(`[Sync Warning] Initial sync for ${providerId} completed with warnings:`, syncErr);
     }

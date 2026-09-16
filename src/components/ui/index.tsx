@@ -80,3 +80,5 @@ export type { ButtonProps } from "./Button";
 export { NumberFlowAmount } from "./NumberFlowAmount";
 export type { NumberFlowAmountProps } from "./NumberFlowAmount";
 
+export { ThemePresetDropdown } from "./ThemePresetDropdown";
+export { CircleFlag } from "./CircleFlag";

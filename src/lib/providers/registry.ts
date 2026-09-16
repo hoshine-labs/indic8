@@ -12,6 +12,7 @@ import { AppStoreAdapter } from "./app-store";
 import { GooglePlayAdapter } from "./google-play";
 import { DodoPaymentsAdapter } from "./dodo";
 import { PaddleAdapter } from "./paddle";
+import { GumroadAdapter } from "./gumroad";
 import { CreemAdapter } from "./creem";
 
 export const PROVIDER_REGISTRY: Record<ProviderId, PaymentProviderAdapter> = {
@@ -23,6 +24,7 @@ export const PROVIDER_REGISTRY: Record<ProviderId, PaymentProviderAdapter> = {
   google_play: new GooglePlayAdapter(),
   dodopayments: new DodoPaymentsAdapter(),
   paddle: new PaddleAdapter(),
+  gumroad: new GumroadAdapter(),
   creem: new CreemAdapter(),
 };
 

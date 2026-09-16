@@ -7,6 +7,7 @@ export type ProviderType =
   | "lemonsqueezy"
   | "dodopayments"
   | "paddle"
+  | "gumroad"
   | "creem";
 
 export type TimePeriod =
@@ -72,7 +73,7 @@ export interface UnifiedProduct {
   providers: ProductProviderMapping[];
   channels: ProductProviderMapping[];
   groupedProductIds?: string[];
-  salesTimeSeries: Array<{ date: string; revenue: number; orders: number }>;
+  salesTimeSeries?: Array<{ date: string; revenue: number; orders: number }>;
 }
 
 export interface Transaction {

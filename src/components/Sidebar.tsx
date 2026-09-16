@@ -24,6 +24,7 @@ import { ActiveNavTab } from "@/lib/types";
 import { useSession } from "@/lib/auth/client";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useMounted } from "@/lib/useMounted";
+import { LocalPreferences } from "@/lib/storage/localPreferences";
 
 export function Sidebar() {
   const mounted = useMounted();
@@ -73,8 +74,27 @@ export function Sidebar() {
       { id: "studio", label: "Studio Canvas", icon: <PaintBrushIcon className="w-[18px] h-[18px]" /> },
     ];
 
-  const userName = user?.name || (user?.email ? user.email.split("@")[0] : "Account");
-  const userInitials = (user?.name || user?.email || "U")
+  const [customAvatar, setCustomAvatar] = useState<string | undefined>(undefined);
+  const [customName, setCustomName] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const updateLocalProfile = () => {
+      setCustomAvatar(LocalPreferences.get("customAvatarUrl"));
+      setCustomName(LocalPreferences.get("customDisplayName"));
+    };
+    updateLocalProfile();
+    window.addEventListener("indic8_profile_updated", updateLocalProfile);
+    window.addEventListener("storage", updateLocalProfile);
+    return () => {
+      window.removeEventListener("indic8_profile_updated", updateLocalProfile);
+      window.removeEventListener("storage", updateLocalProfile);
+    };
+  }, []);
+
+  const effectiveAvatar = customAvatar || user?.image;
+  const effectiveName = customName || user?.name || (user?.email ? user.email.split("@")[0] : "Account");
+  const userName = effectiveName;
+  const userInitials = (effectiveName || "U")
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -82,7 +102,7 @@ export function Sidebar() {
     .toUpperCase();
 
   const handleProfileClick = () => {
-    if (user) {
+    if (user || customName || customAvatar) {
       setActiveTab("profile");
       setIsMobileOpen(false);
     } else {
@@ -330,10 +350,10 @@ export function Sidebar() {
               {/* Avatar (Synchronized Master GIF playback) */}
               <div className="relative z-20 w-7 h-7 shrink-0 flex items-center justify-center rounded-full overflow-hidden bg-surface-subtle border border-border-default text-brand-primary font-bold text-[11px] shadow-2xs">
                 <SyncedAvatar
-                  src={user?.image}
+                  src={effectiveAvatar}
                   alt={userName}
-                  fallbackText={user ? userInitials : undefined}
-                  fallbackIcon={!user ? <UserIcon className="w-4 h-4 text-brand-secondary" /> : undefined}
+                  fallbackText={effectiveName ? userInitials : undefined}
+                  fallbackIcon={!user && !effectiveAvatar ? <UserIcon className="w-4 h-4 text-brand-secondary" /> : undefined}
                   className="w-full h-full"
                 />
               </div>

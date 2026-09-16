@@ -170,7 +170,7 @@ export const ProductDetailInspector: React.FC<ProductDetailInspectorProps> = ({
 
   const series = useMemo(() => {
     if (!product) return [];
-    return generateRevenueTimeSeries(prodTxs, activeTimeframe, primaryCurrency);
+    return generateRevenueTimeSeries(prodTxs, activeTimeframe, primaryCurrency, { earliestDate: product.createdAt });
   }, [prodTxs, activeTimeframe, primaryCurrency, product]);
 
   if (!product) return null;
@@ -186,19 +186,24 @@ export const ProductDetailInspector: React.FC<ProductDetailInspectorProps> = ({
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex justify-end select-none">
-        {/* Clickable Backdrop */}
-        <div className="flex-1 cursor-pointer" onClick={onClose} />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.22 }}
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex justify-end select-none"
+    >
+      {/* Clickable Backdrop */}
+      <div className="flex-1 cursor-pointer" onClick={onClose} />
 
-        {/* Slide-In Modal Drawer matching dark aesthetic */}
-        <motion.div
-          initial={{ x: "100%", opacity: 0.5 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: "100%", opacity: 0 }}
-          transition={{ type: "spring", damping: 28, stiffness: 300 }}
-          className="w-full max-w-xl bg-surface-canvas border-l border-border-default h-full flex flex-col shadow-2xl overflow-hidden"
-        >
+      {/* Slide-In Modal Drawer matching dark aesthetic */}
+      <motion.div
+        initial={{ x: "100%", opacity: 0.5 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: "100%", opacity: 0 }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        className="w-full max-w-xl bg-surface-canvas border-l border-border-default h-full flex flex-col shadow-2xl overflow-hidden"
+      >
           {/* Header */}
           <div className="p-5 border-b border-border-default flex items-start justify-between gap-4 bg-surface-base">
             <div className="space-y-1.5 flex-1 min-w-0">
@@ -458,7 +463,6 @@ export const ProductDetailInspector: React.FC<ProductDetailInspectorProps> = ({
             </div>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </motion.div>
   );
 };

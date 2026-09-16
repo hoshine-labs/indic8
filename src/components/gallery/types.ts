@@ -94,6 +94,8 @@ export interface SocialPostData {
   productId?: string;
   category?: string;
   provider: ProviderType | string;
+  providers?: Array<ProviderType | string>;
+  isArchived?: boolean;
   metricValue: number;
   formattedMetric: string;
   currency: CurrencyCode;
@@ -101,6 +103,7 @@ export interface SocialPostData {
   growthDelta: string;
   peakLabel?: string;
   peakValue?: string;
+  peakIndex?: number;
   founderHandle: string;
   timestamp: string;
   aspectRatio: AspectRatioKey;

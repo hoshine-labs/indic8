@@ -3,15 +3,14 @@
 import React, { useState, useMemo } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { formatCurrencyAmount, convertCurrency } from "@/lib/currency";
-import { CurrencyCode, Transaction } from "@/lib/types";
-import { UnifiedProduct } from "@/lib/types";
+import { CurrencyCode, Transaction, UnifiedProduct } from "@/lib/types";
 import { Dropdown, AnimatedTabs, DropdownOption, TabOption, NumberFlowAmount } from "@/components/ui";
 import {
   Squares2X2Icon,
   ChevronDownIcon,
   ChevronUpIcon,
 } from "@heroicons/react/20/solid";
-import { EChartsPieChart, type ChartConfig as PieChartConfig } from "@/components/evilcharts/charts/echarts-pie-chart";
+import { VisxPieChart, type ChartConfig as PieChartConfig } from "@/components/visx";
 import { ChartCard, ChartSubItem } from "./ChartCard";
 
 export type DistributionDimension = "product" | "country" | "provider" | "status";
@@ -300,29 +299,30 @@ export const DistributionBreakdownChart: React.FC<DistributionBreakdownChartProp
       ) : viewMode === "donut" ? (
         /* Donut View using EChartsPieChart (with right toggleable legend) + Partition Divider + Grid Aligned Side Legend */
         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 pt-2">
-          {/* Donut Chart Container with Vertical Interactive Toggle Legend */}
-          <div className="relative w-full max-w-[420px] sm:max-w-[460px] h-[250px] shrink-0 flex items-center justify-center">
-            <EChartsPieChart
+          {/* Donut Chart Container */}
+          <div className="relative w-full max-w-[340px] sm:max-w-[360px] h-[250px] shrink-0 flex items-center justify-center">
+            <VisxPieChart
               className="h-full w-full"
               data={pieData}
               dataKey="value"
               nameKey="itemKey"
               config={pieConfig}
+              activeIndex={hoveredIndex}
+              onActiveIndexChange={setHoveredIndex}
               valueFormatter={(val) =>
                 metric === "revenue"
                   ? formatCurrencyAmount(val, primaryCurrency)
                   : `${val.toLocaleString()} orders`
               }
             >
-              <EChartsPieChart.Legend isClickable position="right" />
-              <EChartsPieChart.Tooltip />
-              <EChartsPieChart.Pie
+              <VisxPieChart.Tooltip />
+              <VisxPieChart.Pie
                 isClickable
-                innerRadius={30}
-                paddingAngle={4}
-                cornerRadius={8}
+                innerRadius="64%"
+                paddingAngle={3}
+                cornerRadius={5}
               />
-            </EChartsPieChart>
+            </VisxPieChart>
           </div>
 
           {/* Small Vertical Partition Line */}

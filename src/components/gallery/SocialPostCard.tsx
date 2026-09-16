@@ -1,6 +1,4 @@
-"use client";
-
-import React from "react";
+import React, { memo } from "react";
 import { SocialPostData, PostStyleId } from "./types";
 import { GalleryCanvasGraphic } from "./GalleryCanvasGraphic";
 import { useIndic8Store } from "@/lib/indic8Store";
@@ -16,11 +14,12 @@ interface SocialPostCardProps {
   onShare: (post: SocialPostData, styleId: PostStyleId) => void;
 }
 
-export const SocialPostCard: React.FC<SocialPostCardProps> = ({
+export const SocialPostCard: React.FC<SocialPostCardProps> = memo(({
   post,
-  currentStyleId = 3,
+  currentStyleId,
   onShare,
 }) => {
+  const effectiveStyleId = currentStyleId || post.defaultStyleId || 1;
   const { loadMilestoneIntoStudio } = useIndic8Store();
 
   const handleCustomize = (e: React.MouseEvent) => {
@@ -33,28 +32,29 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
       subtext: post.subtitle,
       verifiedSource: post.provider,
       growthDelta: post.growthDelta,
-      accentColor: currentStyleId === 1 ? "#3754F6" : currentStyleId === 2 ? "#F59E0B" : currentStyleId === 4 ? "#10B981" : "#8B5CF6",
+      accentColor: effectiveStyleId === 1 ? "#3754F6" : effectiveStyleId === 2 ? "#F59E0B" : effectiveStyleId === 4 ? "#10B981" : "#8B5CF6",
     });
   };
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onShare(post, currentStyleId);
+    onShare(post, effectiveStyleId);
   };
 
   return (
-    <div className="break-inside-avoid mb-5 select-none">
+    <div className="break-inside-avoid mb-5 inline-block w-full select-none">
       {/* 1. Visual Post Graphic with Sleek Seamless Corner Radius & Design System Hover Overlay */}
-      <div className="group relative rounded-2xl overflow-hidden shadow-xs hover:shadow-md border border-border-subtle transition-shadow duration-200">
+      <div className="group relative rounded-[14px] overflow-hidden shadow-2xs hover:shadow-md border border-border-default/80 transition-shadow duration-200 bg-surface-base">
         {/* Graphic Surface */}
         <GalleryCanvasGraphic
           post={post}
-          styleId={currentStyleId}
+          styleId={effectiveStyleId}
           aspectRatio={post.aspectRatio}
+          isUnrounded={true}
         />
 
         {/* Design System Hover Overlay with Full-Rounded Tactile Action Pills */}
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-3 flex items-end justify-between pointer-events-none group-hover:pointer-events-auto backdrop-blur-[2px]">
+        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-3 flex items-end justify-between pointer-events-none group-hover:pointer-events-auto rounded-[14px]">
           {/* Left Action: Share (Secondary Pill Button) */}
           <button
             type="button"
@@ -94,4 +94,6 @@ export const SocialPostCard: React.FC<SocialPostCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+SocialPostCard.displayName = "SocialPostCard";

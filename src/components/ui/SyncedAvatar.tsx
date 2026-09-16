@@ -40,50 +40,58 @@ class MasterGifBroadcaster {
 
   private async init() {
     this.startTime = performance.now();
-    try {
-      // 1. Check if native ImageDecoder API is available (supports GIF & WebP multi-frame decoding)
-      if (typeof window !== "undefined" && "ImageDecoder" in window) {
+    const isLikelyAnimated =
+      this.src.startsWith("data:image/gif") ||
+      this.src.startsWith("data:image/webp") ||
+      this.src.toLowerCase().includes(".gif") ||
+      this.src.toLowerCase().includes(".webp");
+
+    if (isLikelyAnimated && typeof window !== "undefined" && "ImageDecoder" in window) {
+      try {
         const response = await fetch(this.src);
-        if (!response.ok) throw new Error("Failed to fetch image");
-        const contentType = response.headers.get("content-type") || "image/gif";
-        const buffer = await response.arrayBuffer();
+        if (response.ok) {
+          const contentType = response.headers.get("content-type") || "image/gif";
+          const buffer = await response.arrayBuffer();
 
-        const decoder = new (window as any).ImageDecoder({
-          data: buffer,
-          type: contentType.includes("webp") ? "image/webp" : "image/gif",
-        });
-
-        await decoder.tracks.ready;
-        const track = decoder.tracks.selectedTrack;
-        const count = track?.frameCount || 1;
-
-        const decoded: DecodedFrame[] = [];
-        let total = 0;
-
-        for (let i = 0; i < count; i++) {
-          const result = await decoder.decode({ frameIndex: i });
-          const durMs = result.image.duration ? result.image.duration / 1000 : 100;
-          decoded.push({
-            bitmap: result.image,
-            duration: durMs,
+          const decoder = new (window as any).ImageDecoder({
+            data: buffer,
+            type: contentType.includes("webp") ? "image/webp" : "image/gif",
           });
-          total += durMs;
-        }
 
-        if (decoded.length > 0) {
-          this.frames = decoded;
-          this.totalDuration = total > 0 ? total : 1000;
-          this.isLoaded = true;
-          this.hasError = false;
-          this.broadcast();
-          if (this.subscribers.size > 0 && !this.rafId && this.frames.length > 1) {
-            this.startLoop();
+          await decoder.tracks.ready;
+          const track = decoder.tracks.selectedTrack;
+          const count = track?.frameCount || 1;
+
+          if (count > 1) {
+            const decoded: DecodedFrame[] = [];
+            let total = 0;
+
+            for (let i = 0; i < count; i++) {
+              const result = await decoder.decode({ frameIndex: i });
+              const durMs = result.image.duration ? result.image.duration / 1000 : 100;
+              decoded.push({
+                bitmap: result.image,
+                duration: durMs,
+              });
+              total += durMs;
+            }
+
+            if (decoded.length > 0) {
+              this.frames = decoded;
+              this.totalDuration = total > 0 ? total : 1000;
+              this.isLoaded = true;
+              this.hasError = false;
+              this.broadcast();
+              if (this.subscribers.size > 0 && !this.rafId && this.frames.length > 1) {
+                this.startLoop();
+              }
+              return;
+            }
           }
-          return;
         }
+      } catch {
+        // Silently fall through to standard Image element fallback
       }
-    } catch (err) {
-      console.warn("[SyncedAvatar] ImageDecoder failed or unsupported, using Image element fallback:", err);
     }
 
     // 2. Fallback to standard Image element
@@ -157,9 +165,12 @@ class MasterGifBroadcaster {
   }
 }
 
+import { LocalPreferences } from "@/lib/storage/localPreferences";
+
 interface SyncedAvatarProps {
   src?: string | null;
   alt?: string;
+  crop?: { zoom: number; panX: number; panY: number };
   fallbackText?: string;
   fallbackIcon?: React.ReactNode;
   className?: string;
@@ -169,6 +180,7 @@ interface SyncedAvatarProps {
 export const SyncedAvatar: React.FC<SyncedAvatarProps> = ({
   src,
   alt = "User Avatar",
+  crop,
   fallbackText,
   fallbackIcon,
   className = "w-full h-full",
@@ -176,6 +188,24 @@ export const SyncedAvatar: React.FC<SyncedAvatarProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [localCrop, setLocalCrop] = useState<{ zoom: number; panX: number; panY: number } | undefined>(undefined);
+
+  useEffect(() => {
+    const updateLocalCrop = () => {
+      setLocalCrop(LocalPreferences.get("customAvatarCrop"));
+    };
+    updateLocalCrop();
+    window.addEventListener("indic8_profile_updated", updateLocalCrop);
+    window.addEventListener("storage", updateLocalCrop);
+    return () => {
+      window.removeEventListener("indic8_profile_updated", updateLocalCrop);
+      window.removeEventListener("storage", updateLocalCrop);
+    };
+  }, []);
+
+  const activeCrop = crop ?? localCrop;
+  const activeCropRef = useRef(activeCrop);
+  activeCropRef.current = activeCrop;
 
   useEffect(() => {
     if (!src) {
@@ -212,18 +242,27 @@ export const SyncedAvatar: React.FC<SyncedAvatarProps> = ({
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, displayWidth, displayHeight);
 
-      // Object-fit: cover logic
+      // Object-fit: cover logic with user's zoom & pan
       const sw = (frame as any).width || (frame as any).naturalWidth || displayWidth;
       const sh = (frame as any).height || (frame as any).naturalHeight || displayHeight;
-      const scale = Math.max(displayWidth / sw, displayHeight / sh);
-      const nw = sw * scale;
-      const nh = sh * scale;
-      const ox = (displayWidth - nw) / 2;
-      const oy = (displayHeight - nh) / 2;
+      const baseScale = Math.max(displayWidth / sw, displayHeight / sh);
+      const baseW = sw * baseScale;
+      const baseH = sh * baseScale;
 
+      const currentCrop = activeCropRef.current;
+      const zoom = currentCrop?.zoom ?? 1.0;
+      const scaleRatio = displayWidth / 280;
+      const panX = (currentCrop?.panX ?? 0) * scaleRatio;
+      const panY = (currentCrop?.panY ?? 0) * scaleRatio;
+
+      ctx.save();
+      ctx.translate(displayWidth / 2 + panX, displayHeight / 2 + panY);
+      ctx.scale(zoom, zoom);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(frame, ox, oy, nw, nh);
+      ctx.drawImage(frame, -baseW / 2, -baseH / 2, baseW, baseH);
+      ctx.restore();
+
       ctx.restore();
     };
 
@@ -233,6 +272,47 @@ export const SyncedAvatar: React.FC<SyncedAvatarProps> = ({
       broadcaster.unsubscribe(onFrame);
     };
   }, [src]);
+
+  // Re-render frame when crop settings change
+  useEffect(() => {
+    if (!src) return;
+    const broadcaster = MasterGifBroadcaster.getInstance(src);
+    const frame = (broadcaster as any).getCurrentFrame?.();
+    if (frame && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const displayWidth = Math.max(1, Math.round(rect.width || canvas.clientWidth || 32));
+      const displayHeight = Math.max(1, Math.round(rect.height || canvas.clientHeight || 32));
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, displayWidth, displayHeight);
+        const sw = (frame as any).width || (frame as any).naturalWidth || displayWidth;
+        const sh = (frame as any).height || (frame as any).naturalHeight || displayHeight;
+        const baseScale = Math.max(displayWidth / sw, displayHeight / sh);
+        const baseW = sw * baseScale;
+        const baseH = sh * baseScale;
+
+        const currentCrop = activeCropRef.current;
+        const zoom = currentCrop?.zoom ?? 1.0;
+        const scaleRatio = displayWidth / 280;
+        const panX = (currentCrop?.panX ?? 0) * scaleRatio;
+        const panY = (currentCrop?.panY ?? 0) * scaleRatio;
+
+        ctx.save();
+        ctx.translate(displayWidth / 2 + panX, displayHeight / 2 + panY);
+        ctx.scale(zoom, zoom);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(frame, -baseW / 2, -baseH / 2, baseW, baseH);
+        ctx.restore();
+
+        ctx.restore();
+      }
+    }
+  }, [src, activeCrop]);
 
   if (!src || loadError) {
     return (

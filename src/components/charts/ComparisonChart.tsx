@@ -32,7 +32,7 @@ export const ComparisonChart: React.FC<ComparisonChartProps> = ({
   currency = "USD",
   height = 220,
 }) => {
-  const { isDark } = useTheme();
+  const { isDark, tokens: themeTokens } = useTheme();
   const tokens = isDark ? CHART_TOKENS.dark : CHART_TOKENS.light;
 
   const data = products.map((p) => ({
@@ -41,12 +41,28 @@ export const ComparisonChart: React.FC<ComparisonChartProps> = ({
     formatted: formatMoney(createMoney(p.revenue.amount, p.revenue.currency || currency)),
   }));
 
-  const barColors = [
-    tokens.primaryStroke,
-    isDark ? "#A3A3A3" : "#525252",
-    isDark ? "#737373" : "#737373",
-    isDark ? "#525252" : "#A3A3A3",
-  ];
+  const maxAmount = Math.max(...data.map((d) => d.amount), 1);
+
+  const getBarColor = (amount: number) => {
+    const baseFill = themeTokens?.surface?.subtle || (isDark ? "#18181f" : "#f1f5f9");
+    if (amount <= 0) return baseFill;
+
+    const accent = themeTokens?.accent?.primary || (isDark ? "#6366f1" : "#4f46e5");
+    const bright = themeTokens?.accent?.bright || accent;
+    if (maxAmount <= 1) return isDark ? bright : accent;
+
+    const ratio = amount / maxAmount;
+    if (ratio <= 0.25) {
+      return `color-mix(in srgb, ${accent} 30%, ${baseFill})`;
+    }
+    if (ratio <= 0.5) {
+      return `color-mix(in srgb, ${accent} 55%, ${baseFill})`;
+    }
+    if (ratio <= 0.75) {
+      return `color-mix(in srgb, ${accent} 78%, ${baseFill})`;
+    }
+    return isDark ? bright : accent;
+  };
 
   return (
     <div className="w-full select-none" style={{ height }}>
@@ -92,8 +108,8 @@ export const ComparisonChart: React.FC<ComparisonChartProps> = ({
             }}
           />
           <Bar dataKey="amount" radius={[0, 4, 4, 0]} maxBarSize={20}>
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getBarColor(entry.amount)} />
             ))}
           </Bar>
         </BarChart>

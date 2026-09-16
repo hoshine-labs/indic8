@@ -86,6 +86,7 @@ interface Indic8ContextType {
 
   selectedProductIdsForCompare: string[];
   toggleProductForCompare: (productId: string) => void;
+  setCompareProductIds: (ids: string[]) => void;
   clearCompareSelection: () => void;
 
   selectedProductForDetail: UnifiedProduct | null;
@@ -234,8 +235,8 @@ export const Indic8Provider: React.FC<{ children: React.ReactNode }> = ({ childr
       const prodCurrencyRaw = (p.currency || p.primaryCurrency || "USD").toUpperCase();
       const prodCurrency = (CURRENCY_RATES[prodCurrencyRaw as CurrencyCode] ? prodCurrencyRaw : "USD") as CurrencyCode;
 
-      const rawRev = typeof p.amount === "number" ? p.amount : typeof p.totalRevenue === "number" ? p.totalRevenue : 0;
-      const rawSales = typeof p.salesCount === "number" ? p.salesCount : typeof p.totalSales === "number" ? p.totalSales : (rawRev > 0 ? 1 : 0);
+      const rawSales = typeof p.salesCount === "number" ? p.salesCount : typeof p.totalSales === "number" ? p.totalSales : 0;
+      const rawRev = typeof p.totalRevenue === "number" ? p.totalRevenue : (rawSales > 0 && typeof p.amount === "number" ? p.amount * rawSales : 0);
 
       const initialRev = convertCurrency(rawRev, prodCurrency, primaryCurrency);
 
@@ -267,7 +268,7 @@ export const Indic8Provider: React.FC<{ children: React.ReactNode }> = ({ childr
         mrr: 0,
         totalRefunds: 0,
         avgOrderValue: rawSales > 0 ? initialRev / rawSales : 0,
-        growthYoY: p.growthYoY || "+15%",
+        growthYoY: p.growthYoY || "",
         isArchived,
         channels: [defaultChannel],
         providers: [defaultChannel],
@@ -303,9 +304,9 @@ export const Indic8Provider: React.FC<{ children: React.ReactNode }> = ({ childr
           const txRefunds = refunded.reduce((sum, t) => sum + convertCurrency(t.amount, t.currency, primaryCurrency), 0);
           const uniqueCustomers = new Set(matchingTxs.map((t) => t.customerEmail).filter(Boolean));
 
-          prod.totalRevenue = Math.max(prod.totalRevenue, txRev);
-          prod.totalSales = Math.max(prod.totalSales, succeeded.length);
-          prod.totalCustomers = Math.max(prod.totalCustomers, uniqueCustomers.size);
+          prod.totalRevenue = txRev > 0 ? txRev : prod.totalRevenue;
+          prod.totalSales = succeeded.length > 0 ? succeeded.length : prod.totalSales;
+          prod.totalCustomers = uniqueCustomers.size > 0 ? uniqueCustomers.size : prod.totalCustomers;
           prod.totalRefunds = txRefunds;
           prod.avgOrderValue = prod.totalSales > 0 ? prod.totalRevenue / prod.totalSales : 0;
 
@@ -579,6 +580,10 @@ export const Indic8Provider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
+  const setCompareProductIds = (ids: string[]) => {
+    setSelectedProductIdsForCompare(ids);
+  };
+
   const clearCompareSelection = () => {
     setSelectedProductIdsForCompare([]);
   };
@@ -688,6 +693,7 @@ export const Indic8Provider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         selectedProductIdsForCompare,
         toggleProductForCompare,
+        setCompareProductIds,
         clearCompareSelection,
 
         selectedProductForDetail,

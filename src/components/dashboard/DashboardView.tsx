@@ -131,8 +131,8 @@ export const DashboardView: React.FC = () => {
 
   // Generate continuous time series for the selected timeframe
   const revenueSeries = useMemo(() => {
-    return generateRevenueTimeSeries(filteredTransactions, timePeriod, primaryCurrency);
-  }, [filteredTransactions, timePeriod, primaryCurrency]);
+    return generateRevenueTimeSeries(filteredTransactions, timePeriod, primaryCurrency, { products });
+  }, [filteredTransactions, timePeriod, primaryCurrency, products]);
 
   // Generate flat line series for MRR across the time range
   const flatMRRSeries = useMemo(() => {
@@ -503,7 +503,7 @@ export const DashboardView: React.FC = () => {
               )}
             </div>
 
-            <div className="pt-0.5 h-[270px] overflow-visible px-1">
+            <div className="pt-0.5 px-1">
               <Indic8Chart
                 data={cumulativeSeries}
                 currency={primaryCurrency}

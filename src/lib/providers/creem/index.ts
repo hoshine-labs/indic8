@@ -1,9 +1,9 @@
 /**
  * Creem Provider Adapter
  * 
- * Interacts directly with Creem Payment & MoR API (api.creem.io & test-api.creem.io)
- * Supports live and test keys, digital product catalogs, checkout transactions,
- * sales fees, recurring subscriptions, and customer spend.
+ * Interacts directly with Creem REST API (https://api.creem.io/v1 and https://test-api.creem.io/v1)
+ * Supports live production, test/sandbox mode, full catalog discovery via /v1/products/search,
+ * uploaded dashboard images (image_url, image_urls), transactions, subscriptions, and buyer telemetry.
  */
 
 import { PaymentProviderAdapter, ProviderValidationResult, ProviderSyncPayload } from "../types";
@@ -15,23 +15,86 @@ import {
   RawProviderCustomer,
 } from "@/lib/domain/types";
 
-const CREEM_LIVE_BASE = "https://api.creem.io/v1";
+const CREEM_PROD_BASE = "https://api.creem.io/v1";
 const CREEM_TEST_BASE = "https://test-api.creem.io/v1";
-const CREEM_ALT_LIVE = "https://api.creem.io";
+const CREEM_ALT_PROD = "https://api.creem.io";
 const CREEM_ALT_TEST = "https://test-api.creem.io";
 
-function extractCreemList(data: any): any[] {
-  if (!data) return [];
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data.data)) return data.data;
-  if (Array.isArray(data.items)) return data.items;
-  if (Array.isArray(data.products)) return data.products;
-  if (Array.isArray(data.orders)) return data.orders;
-  if (Array.isArray(data.payments)) return data.payments;
-  if (Array.isArray(data.checkouts)) return data.checkouts;
-  if (Array.isArray(data.subscriptions)) return data.subscriptions;
-  if (Array.isArray(data.customers)) return data.customers;
+function extractCreemList(res: any, key?: string): any[] {
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res.items)) return res.items;
+  if (res.result && Array.isArray(res.result.items)) return res.result.items;
+  if (res.result && Array.isArray(res.result)) return res.result;
+  if (Array.isArray(res.data)) return res.data;
+  if (key && Array.isArray(res[key])) return res[key];
+  if (Array.isArray(res.products)) return res.products;
+  if (Array.isArray(res.transactions)) return res.transactions;
+  if (Array.isArray(res.orders)) return res.orders;
+  if (Array.isArray(res.payments)) return res.payments;
+  if (Array.isArray(res.subscriptions)) return res.subscriptions;
+  if (Array.isArray(res.customers)) return res.customers;
   return [];
+}
+
+function resolveCreemMedia(p: any): string[] {
+  if (!p) return [];
+  const list: string[] = [];
+
+  const addUrl = (u: any) => {
+    if (typeof u === "string" && u.trim().startsWith("http")) {
+      const clean = u.trim();
+      if (!list.includes(clean)) list.push(clean);
+    } else if (u && typeof u === "object") {
+      const cand = u.url || u.original_url || u.preview_url || u.thumbnail_url || u.src || u.image_url || u.imageUrl;
+      if (typeof cand === "string" && cand.trim().startsWith("http")) {
+        const clean = cand.trim();
+        if (!list.includes(clean)) list.push(clean);
+      }
+    }
+  };
+
+  // Direct and nested image attributes from Creem Dashboard
+  addUrl(p.image_url);
+  addUrl(p.imageUrl);
+  addUrl(p.image);
+  addUrl(p.cover_url);
+  addUrl(p.cover_image);
+  addUrl(p.coverImage);
+  addUrl(p.cover);
+  addUrl(p.thumbnail_url);
+  addUrl(p.thumbnailUrl);
+  addUrl(p.thumbnail);
+  addUrl(p.preview_url);
+  addUrl(p.previewUrl);
+  addUrl(p.icon_url);
+  addUrl(p.iconUrl);
+  addUrl(p.icon);
+  addUrl(p.logo_url);
+  addUrl(p.logoUrl);
+  addUrl(p.logo);
+  addUrl(p.product_image);
+  addUrl(p.productImage);
+  addUrl(p.avatar_url);
+  addUrl(p.avatarUrl);
+
+  if (Array.isArray(p.image_urls)) {
+    p.image_urls.forEach((img: any) => addUrl(img));
+  }
+  if (Array.isArray(p.images)) {
+    p.images.forEach((img: any) => addUrl(img));
+  }
+  if (Array.isArray(p.medias)) {
+    p.medias.forEach((m: any) => addUrl(m));
+  }
+  if (Array.isArray(p.media)) {
+    p.media.forEach((m: any) => addUrl(m));
+  }
+  if (Array.isArray(p.covers)) {
+    p.covers.forEach((c: any) => addUrl(c));
+  }
+
+  return list;
 }
 
 export class CreemAdapter implements PaymentProviderAdapter {
@@ -46,11 +109,24 @@ export class CreemAdapter implements PaymentProviderAdapter {
     supportsCountries: true,
   };
 
+  private getBaseUrls(credentials: Record<string, string>): string[] {
+    const key = credentials.apiKey?.trim() || credentials.token?.trim() || credentials.accessToken?.trim() || "";
+    if (
+      credentials.environment === "test" ||
+      credentials.isSandbox === "true" ||
+      key.includes("test") ||
+      key.startsWith("test_") ||
+      key.startsWith("creem_test_")
+    ) {
+      return [CREEM_TEST_BASE, CREEM_PROD_BASE, CREEM_ALT_TEST, CREEM_ALT_PROD];
+    }
+    return [CREEM_PROD_BASE, CREEM_TEST_BASE, CREEM_ALT_PROD, CREEM_ALT_TEST];
+  }
+
   private getHeaders(apiKey: string): Record<string, string> {
-    const cleanKey = apiKey.trim();
     return {
-      "x-api-key": cleanKey,
-      Authorization: `Bearer ${cleanKey}`,
+      "x-api-key": apiKey,
+      Authorization: `Bearer ${apiKey}`,
       Accept: "application/json",
       "Content-Type": "application/json",
       "User-Agent": "indic8-revenue-intelligence/1.0",
@@ -58,7 +134,7 @@ export class CreemAdapter implements PaymentProviderAdapter {
   }
 
   async validateConnection(credentials: Record<string, string>): Promise<ProviderValidationResult> {
-    const apiKey = credentials.apiKey?.trim() || credentials.token?.trim();
+    const apiKey = credentials.apiKey?.trim() || credentials.token?.trim() || credentials.accessToken?.trim();
 
     if (!apiKey) {
       return {
@@ -70,220 +146,193 @@ export class CreemAdapter implements PaymentProviderAdapter {
       };
     }
 
+    const baseUrls = this.getBaseUrls(credentials);
     const headers = this.getHeaders(apiKey);
-    const isTestKey = apiKey.toLowerCase().includes("test");
-
-    // Candidate base URLs ordered by key type
-    const candidateBases = isTestKey
-      ? [CREEM_TEST_BASE, CREEM_ALT_TEST, CREEM_LIVE_BASE, CREEM_ALT_LIVE]
-      : [CREEM_LIVE_BASE, CREEM_ALT_LIVE, CREEM_TEST_BASE, CREEM_ALT_TEST];
-
     const candidateEndpoints = [
-      "/products",
-      "/checkouts",
-      "/customers",
-      "/stores",
-      "/discounts",
-      "/orders",
-      "/payments",
+      "/products/search",
+      "/v1/products/search",
+      "/transactions/search",
+      "/v1/transactions/search",
+      "/subscriptions/search",
+      "/v1/subscriptions/search",
     ];
 
-    let lastError = "Creem rejected this API Key. Please verify the key in Developer Settings.";
+    let isValid = false;
+    let authError = "";
+    const isTest = apiKey.includes("test") || apiKey.startsWith("creem_test_");
 
-    for (const base of candidateBases) {
+    for (const baseUrl of baseUrls) {
       for (const endpoint of candidateEndpoints) {
         try {
-          const res = await fetch(`${base}${endpoint}`, { headers }).catch(() => null);
-          if (res && res.ok) {
-            const isSandbox = base.includes("test");
-            return {
-              isValid: true,
-              accountId: credentials.accountId || `creem_${isSandbox ? "test" : "live"}_${Date.now()}`,
-              accountName: credentials.accountName || `Creem ${isSandbox ? "Test" : "Merchant"} Store`,
-              capabilities: this.capabilities,
-            };
+          const res = await fetch(`${baseUrl}${endpoint}`, { headers });
+          if (res.ok) {
+            isValid = true;
+            break;
+          } else if (res.status === 401 || res.status === 403) {
+            const err = await res.json().catch(() => ({}));
+            const msg = Array.isArray(err.message) ? err.message.join(", ") : err.message;
+            authError = msg || err.error || err.detail || `Creem rejected credentials (HTTP ${res.status}).`;
           }
-
-          if (res && res.status !== 401 && res.status !== 403 && res.status !== 404) {
-            // A non-401/403 status (e.g. 200, 204, or 400 with valid session) indicates authentication passed
-            return {
-              isValid: true,
-              accountId: credentials.accountId || `creem_${Date.now()}`,
-              accountName: credentials.accountName || "Creem Store",
-              capabilities: this.capabilities,
-            };
-          }
-
-          if (res && (res.status === 401 || res.status === 403)) {
-            const errData = await res.json().catch(() => ({}));
-            if (errData.message || errData.error) {
-              lastError = errData.message || errData.error;
-            }
-          }
-        } catch {
-          // Continue to next probe
+        } catch (err) {
+          authError = err instanceof Error ? err.message : "Network error contacting Creem API.";
         }
       }
+      if (isValid) break;
+    }
+
+    if (!isValid) {
+      return {
+        isValid: false,
+        accountId: "",
+        accountName: "",
+        errorMessage: authError || "Creem rejected this API Key. Please verify your API Key in the Creem Developer Dashboard.",
+        capabilities: this.capabilities,
+      };
     }
 
     return {
-      isValid: false,
-      accountId: "",
-      accountName: "",
-      errorMessage: lastError,
+      isValid: true,
+      accountId: credentials.accountId || `creem_${isTest ? "test_" : ""}${Date.now()}`,
+      accountName: credentials.accountName || (isTest ? "Creem (Test Sandbox)" : "Creem Store"),
       capabilities: this.capabilities,
     };
   }
 
   async fetchSyncData(credentials: Record<string, string>): Promise<ProviderSyncPayload> {
-    const apiKey = credentials.apiKey?.trim() || credentials.token?.trim();
+    const apiKey = credentials.apiKey?.trim() || credentials.token?.trim() || credentials.accessToken?.trim();
     if (!apiKey) throw new Error("Missing Creem API key.");
 
+    const baseUrls = this.getBaseUrls(credentials);
     const headers = this.getHeaders(apiKey);
-    const isTestKey = apiKey.toLowerCase().includes("test");
 
-    const candidateBases = isTestKey
-      ? [CREEM_TEST_BASE, CREEM_ALT_TEST, CREEM_LIVE_BASE, CREEM_ALT_LIVE]
-      : [CREEM_LIVE_BASE, CREEM_ALT_LIVE, CREEM_TEST_BASE, CREEM_ALT_TEST];
-
-    let workingBase = candidateBases[0];
-
-    // Find first responsive base URL
-    for (const base of candidateBases) {
-      const probe = await fetch(`${base}/products`, { headers }).catch(() => null);
-      if (probe && probe.ok) {
-        workingBase = base;
-        break;
+    const safeFetch = async (paths: string[], key?: string) => {
+      for (const baseUrl of baseUrls) {
+        for (const path of paths) {
+          try {
+            const res = await fetch(`${baseUrl}${path}`, { headers });
+            if (res.ok) {
+              const data = await res.json();
+              const list = extractCreemList(data, key);
+              if (list.length > 0 || Array.isArray(data) || data.result || data.items || data.data) {
+                return list;
+              }
+            }
+          } catch {}
+        }
       }
-    }
+      return [];
+    };
 
-    // Parallel fetch of Products, Orders/Payments, Subscriptions, and Customers
-    const [productsRes, ordersRes, subsRes, custRes, checkoutsRes] = await Promise.all([
-      fetch(`${workingBase}/products`, { headers }).catch(() => null),
-      fetch(`${workingBase}/orders`, { headers }).catch(() => null),
-      fetch(`${workingBase}/subscriptions`, { headers }).catch(() => null),
-      fetch(`${workingBase}/customers`, { headers }).catch(() => null),
-      fetch(`${workingBase}/checkouts`, { headers }).catch(() => null),
+    const [rawProducts, rawTransactions, rawSubs, rawCustomers] = await Promise.all([
+      safeFetch(["/products/search", "/v1/products/search", "/products", "/v1/products"], "products"),
+      safeFetch(["/transactions/search", "/v1/transactions/search", "/orders", "/v1/orders", "/payments", "/v1/payments"], "transactions"),
+      safeFetch(["/subscriptions/search", "/v1/subscriptions/search", "/subscriptions", "/v1/subscriptions"], "subscriptions"),
+      safeFetch(["/customers/search", "/v1/customers/search", "/customers", "/v1/customers"], "customers"),
     ]);
 
-    const rawProducts = productsRes && productsRes.ok ? extractCreemList(await productsRes.json()) : [];
+    // 1. Process Products with complete media resolution
     const products: RawProviderProduct[] = rawProducts.map((p: any) => {
-      const isArchived = p.status === "archived" || p.status === "draft";
-      const imageUrl = p.image_url || p.imageUrl || p.logo || p.thumbnail_url || undefined;
-      const mediaList = imageUrl ? [imageUrl] : [];
+      const pId = String(p.id || p.product_id || p.productId || `creem_prod_${Date.now()}`);
+      const mediaList = resolveCreemMedia(p);
+      const isArchived = Boolean(p.status === "archived" || p.archived || p.deleted || p.is_archived);
+
+      const rawPrice = typeof p.price === "number" ? p.price : typeof p.amount === "number" ? p.amount : typeof p.default_price === "number" ? p.default_price : 0;
+      // In Creem API, prices are in cents (e.g. 1000 = $10.00, 2900 = $29.00, 900 = $9.00)
+      const priceCents = rawPrice > 0 ? (rawPrice >= 100 && Number.isInteger(rawPrice) ? rawPrice : Math.round(rawPrice * 100)) : 0;
+      const salesCount = typeof p.sales_count === "number" ? p.sales_count : typeof p.salesCount === "number" ? p.salesCount : typeof p.total_sales === "number" ? p.total_sales : 0;
+      const totalRevenueCents = typeof p.total_revenue === "number" ? p.total_revenue : typeof p.totalRevenue === "number" ? p.totalRevenue : salesCount * priceCents;
+
+      const isRecurring = p.billing_type === "recurring" || p.billingType === "recurring" || p.type === "recurring" || p.type === "subscription";
 
       return {
         providerId: "creem" as const,
-        externalProductId: String(p.id || p.productId || `creem_prod_${Date.now()}`),
-        name: p.name || p.title || "Creem Digital Product",
+        externalProductId: pId,
+        name: p.name || p.title || "Creem Product",
         description: p.description || undefined,
-        category: p.category || "Digital Product",
-        imageUrl,
+        category: isRecurring ? "SaaS" : "Digital Product",
+        imageUrl: mediaList.length > 0 ? mediaList[0] : undefined,
         medias: mediaList,
+        amount: priceCents / 100,
+        totalRevenue: totalRevenueCents / 100,
+        salesCount,
+        currency: (p.currency || "USD").toUpperCase(),
+        isRecurring,
+        recurringInterval: p.billing_period === "every-year" || p.billingPeriod === "every-year" || p.interval === "year" || p.recurring_interval === "year" ? ("year" as const) : ("month" as const),
         isArchived,
         createdAt: p.created_at || p.createdAt || new Date().toISOString(),
       };
     });
 
-    // If no products were returned from /products, try checkouts
-    if (products.length === 0 && checkoutsRes && checkoutsRes.ok) {
-      const rawCheckouts = extractCreemList(await checkoutsRes.json());
-      rawCheckouts.forEach((ch: any) => {
-        const prodId = ch.product_id || ch.id || `creem_prod_${Date.now()}`;
-        if (!products.some((p) => p.externalProductId === String(prodId))) {
-          products.push({
-            providerId: "creem" as const,
-            externalProductId: String(prodId),
-            name: ch.product_name || ch.title || "Creem Digital Product",
-            description: ch.description || undefined,
-            category: "Digital Product",
-            createdAt: ch.created_at || new Date().toISOString(),
-          });
-        }
-      });
-    }
+    // 2. Process Transactions / Orders
+    const transactions: RawProviderTransaction[] = rawTransactions.map((t: any, idx: number) => {
+      const rawAmt = typeof t.amount === "number" ? t.amount : typeof t.total_amount === "number" ? t.total_amount : typeof t.price === "number" ? t.price : 0;
+      const amountCents = rawAmt > 0 && rawAmt < 50 ? Math.round(rawAmt * 100) : Math.round(rawAmt);
+      const feeCents = typeof t.fee === "number" ? t.fee : typeof t.creem_fee === "number" ? t.creem_fee : Math.round(amountCents * 0.05);
+      const netCents = Math.max(0, amountCents - feeCents);
 
-    const rawOrders = ordersRes && ordersRes.ok ? extractCreemList(await ordersRes.json()) : [];
-    const transactions: RawProviderTransaction[] = rawOrders.map((o: any) => {
-      const amountCents =
-        typeof o.amount_cents === "number"
-          ? o.amount_cents
-          : typeof o.amount === "number"
-          ? Math.round(o.amount * 100)
-          : typeof o.total === "number"
-          ? Math.round(o.total * 100)
-          : 0;
-      const feeCents =
-        typeof o.fee_cents === "number"
-          ? o.fee_cents
-          : typeof o.fee === "number"
-          ? Math.round(o.fee * 100)
-          : 0;
-      const netCents = amountCents - feeCents;
+      const isRefunded = t.status === "refunded" || Boolean(t.refunded) || Boolean(t.refund_amount);
+      const isSucceeded = t.status === "succeeded" || t.status === "paid" || t.status === "completed" || !t.status;
 
-      const isRefunded = o.status === "refunded";
-      const isSucceeded = o.status === "succeeded" || o.status === "paid" || o.status === "completed";
+      const country = String(
+        t.customer?.country || t.billing_country || t.tax_country || t.country || "US"
+      ).toUpperCase().slice(0, 2);
 
-      const country = (o.customer_country || o.country || o.customer?.country || "US").toUpperCase().slice(0, 2);
+      const occurDate = t.created_at || t.createdAt || t.timestamp || new Date().toISOString();
 
       return {
         providerId: "creem" as const,
-        externalTransactionId: String(o.id || o.order_id || `tx_${Date.now()}`),
-        externalProductId: o.product_id ? String(o.product_id) : "creem_general",
-        productName: o.product_name || o.product?.name || "Creem Order",
-        externalCustomerId: o.customer_id ? String(o.customer_id) : undefined,
-        customerEmail: o.customer_email || o.customer?.email || undefined,
-        customerName: o.customer_name || o.customer?.name || undefined,
+        externalTransactionId: String(t.id || t.transaction_id || t.order_id || `tx_creem_${idx}_${Date.now()}`),
+        externalProductId: String(t.product_id || t.productId || t.product?.id || "creem_general"),
+        productName: t.product_name || t.product?.name || t.productName || "Creem Order",
+        externalCustomerId: t.customer_id || t.customerId || t.customer?.id,
+        customerEmail: t.customer_email || t.customerEmail || t.customer?.email || t.email || undefined,
+        customerName: t.customer_name || t.customerName || t.customer?.name || t.name || undefined,
         amount: amountCents / 100,
         amountCents,
         feeCents,
         netCents,
-        currency: (o.currency || "USD").toUpperCase(),
+        currency: String(t.currency || "USD").toUpperCase(),
         status: isRefunded ? ("refunded" as const) : isSucceeded ? ("succeeded" as const) : ("failed" as const),
         country,
-        occurredAt: o.created_at || o.createdAt || new Date().toISOString(),
-        timestamp: o.created_at || o.createdAt || new Date().toISOString(),
+        occurredAt: occurDate,
+        timestamp: occurDate,
       };
     });
 
-    const rawSubs = subsRes && subsRes.ok ? extractCreemList(await subsRes.json()) : [];
-    const subscriptions: RawProviderSubscription[] = rawSubs.map((s: any) => {
-      const amountCents =
-        typeof s.amount_cents === "number"
-          ? s.amount_cents
-          : typeof s.amount === "number"
-          ? Math.round(s.amount * 100)
-          : 0;
-      const interval: "month" | "year" = s.interval === "year" || s.billing_period === "yearly" ? "year" : "month";
-      const mrrCents = interval === "year" ? Math.round(amountCents / 12) : amountCents;
+    // 3. Process Subscriptions
+    const subscriptions: RawProviderSubscription[] = rawSubs.map((s: any, idx: number) => {
+      const planAmount = typeof s.price === "number" ? s.price : typeof s.recurring_price === "number" ? s.recurring_price : typeof s.amount === "number" ? s.amount : 0;
+      const interval = s.billing_period === "every-year" || s.billingPeriod === "every-year" || s.interval === "year" || s.interval === "yearly" || s.recurring_interval === "year" ? "year" : "month";
+      const planCents = planAmount > 0 && planAmount < 50 ? Math.round(planAmount * 100) : Math.round(planAmount);
+      const mrrCents = interval === "year" ? Math.round(planCents / 12) : planCents;
+
+      const isSubActive = s.status === "active" || s.status === "paid";
 
       return {
         providerId: "creem" as const,
-        externalSubscriptionId: String(s.id || s.subscription_id),
-        externalProductId: s.product_id ? String(s.product_id) : "creem_sub",
-        externalCustomerId: s.customer_id ? String(s.customer_id) : undefined,
-        customerEmail: s.customer_email || s.customer?.email || undefined,
+        externalSubscriptionId: String(s.id || s.subscription_id || `sub_creem_${idx}_${Date.now()}`),
+        externalProductId: String(s.product_id || s.productId || s.product?.id || "creem_sub_product"),
+        externalCustomerId: s.customer_id || s.customerId || s.customer?.id,
+        customerEmail: s.customer_email || s.customerEmail || s.customer?.email || s.email || undefined,
         mrrCents,
         mrrContribution: mrrCents / 100,
-        currency: (s.currency || "USD").toUpperCase(),
-        status: s.status === "active" ? ("active" as const) : ("canceled" as const),
-        interval,
+        currency: String(s.currency || "USD").toUpperCase(),
+        status: isSubActive ? ("active" as const) : s.status === "trialing" ? ("trialing" as const) : s.status === "past_due" ? ("past_due" as const) : ("canceled" as const),
+        interval: interval as "month" | "year",
         startedAt: s.created_at || s.createdAt || new Date().toISOString(),
-        currentPeriodEnd: s.current_period_end || s.renews_at,
+        currentPeriodEnd: s.current_period_end || s.currentPeriodEnd || s.next_billing_date,
       };
     });
 
-    const rawCusts = custRes && custRes.ok ? extractCreemList(await custRes.json()) : [];
-    const customers: RawProviderCustomer[] = rawCusts.map((cu: any) => ({
-      id: String(cu.id || cu.customer_id),
+    // 4. Process Customers
+    const customers: RawProviderCustomer[] = rawCustomers.map((cu: any, idx: number) => ({
+      id: String(cu.id || cu.customer_id || cu.customerId || `cust_creem_${idx}`),
       providerId: "creem" as const,
-      externalCustomerId: String(cu.id || cu.customer_id),
+      externalCustomerId: String(cu.id || cu.customer_id || cu.customerId || `cust_creem_${idx}`),
       email: cu.email || undefined,
       name: cu.name || undefined,
-      country: (cu.country || "US").toUpperCase().slice(0, 2),
-      totalSpend: typeof cu.total_spend === "number" ? cu.total_spend : 0,
-      currency: (cu.currency || "USD").toUpperCase(),
-      createdAt: cu.created_at || new Date().toISOString(),
+      country: String(cu.country || cu.billing_address?.country || "US").toUpperCase().slice(0, 2),
+      createdAt: cu.created_at || cu.createdAt || new Date().toISOString(),
     }));
 
     return { products, transactions, subscriptions, customers };

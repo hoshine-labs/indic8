@@ -198,6 +198,19 @@ export class PaddleAdapter extends BaseProviderAdapter {
   };
 }
 
+export class GumroadAdapter extends BaseProviderAdapter {
+  readonly id = "gumroad" as const;
+  readonly name = "Gumroad";
+  readonly defaultCapabilities: ProviderCapabilities = {
+    supportsRevenue: true,
+    supportsSubscriptions: true,
+    supportsMRR: true,
+    supportsRefunds: true,
+    supportsCustomers: true,
+    supportsCountries: true,
+  };
+}
+
 export class CreemAdapter extends BaseProviderAdapter {
   readonly id = "creem" as const;
   readonly name = "Creem";
@@ -220,5 +233,6 @@ export const PROVIDER_ADAPTERS: Record<ProviderId, PaymentProviderAdapter> = {
   lemonsqueezy: new LemonSqueezyAdapter(),
   dodopayments: new DodoPaymentsAdapter(),
   paddle: new PaddleAdapter(),
+  gumroad: new GumroadAdapter(),
   creem: new CreemAdapter(),
 };

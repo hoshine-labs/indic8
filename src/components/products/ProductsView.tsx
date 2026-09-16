@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { AnimatePresence } from "framer-motion";
 import { useIndic8Store } from "@/lib/indic8Store";
 import { UnifiedProduct, ProviderType } from "@/lib/types";
 import { Card, AnimatedTabs, LoadingSpinner, Dropdown, NumberFlowAmount } from "@/components/ui";
@@ -321,13 +322,16 @@ export const ProductsView: React.FC = () => {
         </div>
       )}
 
-      {/* Slide-over Inspector */}
-      {inspectingProduct && (
-        <ProductDetailInspector
-          product={inspectingProduct}
-          onClose={() => setInspectingProduct(null)}
-        />
-      )}
+      {/* Slide-over Inspector with smooth enter and exit animation */}
+      <AnimatePresence>
+        {inspectingProduct && (
+          <ProductDetailInspector
+            key={inspectingProduct.id}
+            product={inspectingProduct}
+            onClose={() => setInspectingProduct(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

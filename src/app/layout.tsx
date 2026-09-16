@@ -4,7 +4,13 @@ import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { Indic8Provider } from "@/lib/indic8Store";
-import { DARK_THEMES, generateCssVariables } from "@/lib/theme";
+import {
+  DARK_THEMES,
+  LIGHT_THEMES,
+  ACTIVE_DARK_THEME_KEYWORD,
+  ACTIVE_LIGHT_THEME_KEYWORD,
+  generateCssVariables,
+} from "@/lib/theme";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,25 +27,31 @@ export const metadata: Metadata = {
 };
 
 // Pre-serialized theme definitions for zero-flash initial execution
-const serializedThemes = JSON.stringify(
+const serializedDarkThemes = JSON.stringify(
   Object.fromEntries(
     Object.entries(DARK_THEMES).map(([k, v]) => [k, generateCssVariables(v)])
   )
+);
+const serializedLightVars = JSON.stringify(
+  generateCssVariables(LIGHT_THEMES[ACTIVE_LIGHT_THEME_KEYWORD] || LIGHT_THEMES.default)
 );
 
 const themeScript = `
 (function() {
   try {
+    var defaultDarkPreset = "${ACTIVE_DARK_THEME_KEYWORD}";
     var storedTheme = localStorage.getItem("indic8-theme");
-    var storedPreset = localStorage.getItem("indic8-dark-preset") || "zinc";
+    var storedPreset = localStorage.getItem("indic8-dark-preset") || defaultDarkPreset;
     var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     var isDark = storedTheme === "dark" || (storedTheme !== "light" && prefersDark);
     var root = document.documentElement;
+    var darkThemes = ${serializedDarkThemes};
+    var lightVars = ${serializedLightVars};
+
     if (isDark) {
       root.classList.add("dark");
       root.style.colorScheme = "dark";
-      var themes = ${serializedThemes};
-      var vars = themes[storedPreset] || themes["zinc"];
+      var vars = darkThemes[storedPreset] || darkThemes[defaultDarkPreset];
       if (vars) {
         for (var key in vars) {
           root.style.setProperty(key, vars[key]);
@@ -48,6 +60,11 @@ const themeScript = `
     } else {
       root.classList.remove("dark");
       root.style.colorScheme = "light";
+      if (lightVars) {
+        for (var key in lightVars) {
+          root.style.setProperty(key, lightVars[key]);
+        }
+      }
     }
   } catch(e) {}
 })();

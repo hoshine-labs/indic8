@@ -30,7 +30,7 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = ({
 
   return (
     <div
-      className={`rounded-xl p-2.5 shadow-2xl backdrop-blur-md min-w-[130px] pointer-events-none select-none transition-colors ${
+      className={`rounded-lg p-2.5 shadow-md min-w-[130px] pointer-events-none select-none transition-colors ${
         isDark
           ? "bg-[#121317] border border-white/[0.08] text-white"
           : "bg-white border border-black/10 text-neutral-900"

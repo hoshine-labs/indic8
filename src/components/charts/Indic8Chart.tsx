@@ -6,7 +6,7 @@ import { ChartEmptyState } from "./ChartEmptyState";
 import { RevenuePoint } from "@/lib/domain/types";
 import { formatCurrencyAmount } from "@/lib/currency";
 import { CurrencyCode } from "@/lib/types";
-import { EvilAreaChart, type ChartConfig } from "@/components/evilcharts";
+import { VisxAreaChart, AnimatedNumber, type ChartConfig, cn } from "@/components/visx";
 
 export interface Indic8ChartProps {
   data: RevenuePoint[];
@@ -18,6 +18,14 @@ export interface Indic8ChartProps {
   showLegend?: boolean;
   className?: string;
   valueFormatter?: (val: number) => string;
+  color?: string;
+  label?: string;
+  minTickGap?: number;
+  interactive?: boolean;
+  staticIndex?: number;
+  forceLight?: boolean;
+  indicatorVariant?: "solid" | "dashed" | "fade";
+  id?: string;
 }
 
 export const Indic8Chart: React.FC<Indic8ChartProps> = ({
@@ -30,21 +38,29 @@ export const Indic8Chart: React.FC<Indic8ChartProps> = ({
   showLegend = false,
   className = "",
   valueFormatter,
+  color,
+  label = "Gross Revenue",
+  minTickGap = 85,
+  interactive = true,
+  staticIndex,
+  forceLight = false,
+  indicatorVariant = "fade",
+  id,
 }) => {
   const { isDark, tokens } = useTheme();
 
   const chartConfig = useMemo(() => {
-    const strokeColor = tokens.accent.chartStroke || (isDark ? "#f97316" : "#FF8A3D");
+    const strokeColor = color || tokens.accent.chartStroke || (isDark ? "#f97316" : "#FF8A3D");
     return {
       amount: {
-        label: "Gross Revenue",
+        label,
         colors: {
           light: [strokeColor],
           dark: [strokeColor],
         },
       },
     } satisfies ChartConfig;
-  }, [isDark, tokens]);
+  }, [isDark, tokens, color, label]);
 
   if (!data || data.length === 0) {
     return <ChartEmptyState className={typeof height === "number" ? `h-[${height}px]` : "h-48"} />;
@@ -54,31 +70,34 @@ export const Indic8Chart: React.FC<Indic8ChartProps> = ({
 
   return (
     <div className={`w-full select-none ${className}`}>
-      <EvilAreaChart
+      <VisxAreaChart
         data={data as unknown as Record<string, unknown>[]}
         config={chartConfig}
         className="w-full"
         curveType="monotone"
         xDataKey="date"
         height={height}
+        interactive={interactive}
+        staticIndex={staticIndex}
+        forceLight={forceLight}
+        id={id}
       >
-        {showGrid && <EvilAreaChart.Grid vertical={false} strokeDasharray="3 3" />}
-        <EvilAreaChart.XAxis
+        {showGrid && <VisxAreaChart.Grid vertical={false} strokeDasharray="3 3" />}
+        <VisxAreaChart.XAxis
           dataKey="date"
           tickLine={false}
           axisLine={false}
-          tickMargin={6}
-          minTickGap={14}
-          interval="preserveStartEnd"
+          tickMargin={14}
+          minTickGap={minTickGap}
           tickFormatter={(value) => {
             if (!value) return "";
             const parts = String(value).split(" ");
             return parts.length > 1 ? parts.slice(0, 2).join(" ") : String(value);
           }}
         />
-        {showYAxis && <EvilAreaChart.YAxis hide={false} tickFormatter={formatter as any} />}
+        {showYAxis && <VisxAreaChart.YAxis hide={false} tickFormatter={formatter as any} />}
         {showBrush && data.length > 3 && (
-          <EvilAreaChart.Brush
+          <VisxAreaChart.Brush
             height={56}
             formatLabel={(value) => {
               if (!value) return "";
@@ -88,19 +107,40 @@ export const Indic8Chart: React.FC<Indic8ChartProps> = ({
             }}
           />
         )}
-        {showLegend && <EvilAreaChart.Legend isClickable />}
-        <EvilAreaChart.Tooltip
-          formatter={(val: any) => (
-            <div className="flex items-center justify-between w-full gap-4">
-              <span className="text-xs text-brand-secondary">Amount</span>
-              <span className="font-mono text-xs font-semibold text-brand-primary">
-                {formatter(Number(val))}
-              </span>
-            </div>
-          )}
+        {showLegend && <VisxAreaChart.Legend isClickable />}
+        <VisxAreaChart.Indicator variant={indicatorVariant} forceLight={forceLight} />
+        <VisxAreaChart.Dot forceLight={forceLight} />
+        <VisxAreaChart.DateTicker forceLight={forceLight} />
+        <VisxAreaChart.Tooltip
+          forceLight={forceLight}
+          formatter={(val: any, _name, item) => {
+            const strokeColor = color || tokens.accent.chartStroke || (isDark ? "#f97316" : "#FF8A3D");
+            const dateStr = item?.date || "";
+            return (
+              <div className="flex items-center justify-between w-full gap-5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className={cn(
+                      "rounded-full shrink-0",
+                      forceLight ? "w-3.5 h-3.5" : "w-2.5 h-2.5"
+                    )}
+                    style={{ backgroundColor: strokeColor }}
+                  />
+                  <span className={cn("font-semibold truncate", forceLight ? "text-sm sm:text-base text-slate-600" : "text-xs sm:text-[13px] text-brand-muted")}>
+                    {dateStr}
+                  </span>
+                </div>
+                <AnimatedNumber
+                  value={Number(val)}
+                  format={(n) => formatter(n)}
+                  className={cn("font-extrabold tabular-nums shrink-0", forceLight ? "text-base sm:text-xl text-slate-900" : "text-sm sm:text-base text-brand-primary")}
+                />
+              </div>
+            );
+          }}
         />
-        <EvilAreaChart.Area dataKey="amount" variant="gradient" strokeVariant="solid" isClickable />
-      </EvilAreaChart>
+        <VisxAreaChart.Area dataKey="amount" variant="gradient" strokeVariant="solid" />
+      </VisxAreaChart>
     </div>
   );
 };

@@ -176,7 +176,27 @@
     fill: #EDEDED !important;
   }
 
-  /* Vector Map Tooltip Overrides */
+  /* Vector Map Tooltip & Region Overrides */
+  .jvm-region {
+    transition: stroke 0.15s ease-out, stroke-width 0.15s ease-out;
+  }
+
+  .dark .jvm-region:hover {
+    stroke: var(--color-brand-primary, #ededed) !important;
+    stroke-width: 1px !important;
+    stroke-opacity: 1 !important;
+    filter: none !important;
+    cursor: pointer;
+  }
+
+  html:not(.dark) .jvm-region:hover {
+    stroke: var(--color-brand-primary, #111111) !important;
+    stroke-width: 1px !important;
+    stroke-opacity: 1 !important;
+    filter: none !important;
+    cursor: pointer;
+  }
+
   .jvm-tooltip {
     position: absolute !important;
     display: none !important;

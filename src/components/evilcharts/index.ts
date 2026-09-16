@@ -1,6 +1,6 @@
-export * from "./charts/recharts-area-chart";
-export { EChartsPieChart } from "./charts/echarts-pie-chart";
-export * from "./ui/recharts-chart";
-export * from "./ui/recharts-brush";
-export type { ChartConfigItem } from "./charts/types";
-export { cn } from "./utils";
+export { AreaChart as EvilAreaChart, VisxAreaChart, AreaChart } from "@/components/visx/charts/AreaChart";
+export { VisxPieChart as EChartsPieChart, VisxPieChart } from "@/components/visx/charts/VisxPieChart";
+export { ChartBrushOverlay as EvilBrush, ChartBrushOverlay, VisxBrush } from "@/components/visx/ui/ChartBrushOverlay";
+export { VisxTooltip } from "@/components/visx/ui/VisxTooltip";
+export type { ChartConfigItem, ChartConfig, VisxBrushRange as EvilBrushRange } from "@/components/visx/types";
+export { cn } from "@/components/visx/utils";

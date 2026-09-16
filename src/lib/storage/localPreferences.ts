@@ -20,6 +20,11 @@ export interface UserLocalPreferences {
   lastActiveTab?: string;
   primaryCurrency?: string;
   dashboardMetricsOrder?: string[];
+  customAvatarUrl?: string;
+  customAvatarCrop?: { zoom: number; panX: number; panY: number };
+  customDisplayName?: string;
+  customBio?: string;
+  showArchivedByProvider?: Record<string, boolean>;
 }
 
 const DEFAULT_PREFERENCES: UserLocalPreferences = {

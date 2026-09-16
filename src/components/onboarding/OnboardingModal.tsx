@@ -289,28 +289,60 @@ const ALL_PROVIDER_SPECS: ProviderSpec[] = [
     securityNote: "Used to normalize Paddle Billing merchant of record sales, EU VAT, and recurring MRR.",
   },
   {
+    id: "gumroad",
+    name: "Gumroad",
+    category: "Creator Economy & Digital Products",
+    fieldLabel: "Access Token",
+    fieldPlaceholder: "gumroad_access_token_...",
+    whereToFind: {
+      title: "How to find your Gumroad Access Token",
+      steps: [
+        {
+          title: "Sign in to Gumroad",
+          description: "Open your Gumroad Dashboard > Settings > Advanced.",
+          linkText: "Gumroad Developer Settings",
+          linkUrl: "https://app.gumroad.com/settings/advanced",
+        },
+        {
+          title: "Create Application Token",
+          description: "Scroll to 'Applications' and create a personal access token with read permissions.",
+        },
+        {
+          title: "Copy Token",
+          description: "Copy the generated Access Token into Indic8.",
+        },
+      ],
+      scopeNote: "Read-only access to products, sales, subscribers, and customers.",
+    },
+    securityNote: "Used to normalize Gumroad sales, platform fees, memberships, and buyer records.",
+  },
+  {
     id: "creem",
     name: "Creem",
-    category: "Digital Products & Subscriptions",
+    category: "Global Merchant of Record & Subscriptions",
     fieldLabel: "API Key",
-    fieldPlaceholder: "creem_live_... or test api key",
+    fieldPlaceholder: "creem_... or test API key",
     whereToFind: {
       title: "How to find your Creem API Key",
       steps: [
         {
           title: "Sign in to Creem",
-          description: "Open your Creem.io Dashboard > Developer Settings.",
-          linkText: "Creem Dashboard",
-          linkUrl: "https://creem.io",
+          description: "Open your Creem Dashboard > Developers > API Keys.",
+          linkText: "Creem Developer Dashboard",
+          linkUrl: "https://creem.io/dashboard/developers",
         },
         {
           title: "Copy API Key",
-          description: "Under API Keys, create or copy your API Key.",
+          description: "Copy your Live or Test API Key (starts with creem_ or test_).",
+        },
+        {
+          title: "Paste & Synchronize",
+          description: "Paste the key into Indic8 to sync products, images, and recurring MRR.",
         },
       ],
-      scopeNote: "Read-only access to products, orders, subscriptions, and customer spend.",
+      scopeNote: "Read-only access to products, transactions, subscriptions, and customers.",
     },
-    securityNote: "Connects directly to Creem checkout records to normalize products and subscription cohorts.",
+    securityNote: "Ingests verified Creem Merchant of Record revenue, tax compliance, and recurring subscription cohorts.",
   },
 ];
 
@@ -410,6 +442,7 @@ export const OnboardingModal: React.FC = () => {
             packageName: gplayPackage.trim() || undefined,
             secondaryValue: selectedSpec?.isJsonUpload ? (gplayBucket.trim() || apiKey.trim()) : secondaryValue.trim(),
             accountName: accountLabel.trim(),
+            isSandbox: keyToUse.toLowerCase().includes("test"),
           },
         }),
       });

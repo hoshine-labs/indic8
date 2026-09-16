@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useIndic8Store } from "@/lib/indic8Store";
 import { BrandIcon } from "@/lib/brandLogos";
 import { Card, Badge, AnimatedToggle } from "@/components/ui";
+import { LocalPreferences } from "@/lib/storage/localPreferences";
 import { ProviderId } from "@/lib/domain/types";
 import {
   getProviderCapabilitiesDetails,
@@ -37,7 +38,12 @@ export const ProvidersView: React.FC = () => {
   } = useIndic8Store();
 
   const [expandedProviderId, setExpandedProviderId] = useState<string | null>(null);
-  const [showArchivedByProvider, setShowArchivedByProvider] = useState<Record<string, boolean>>({});
+  const [showArchivedByProvider, setShowArchivedByProvider] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== "undefined") {
+      return LocalPreferences.get("showArchivedByProvider") || {};
+    }
+    return {};
+  });
   const [activeTooltipCapability, setActiveTooltipCapability] = useState<{
     providerId: string;
     capability: CapabilityDetail;
@@ -67,7 +73,7 @@ export const ProvidersView: React.FC = () => {
           <div className="max-w-md space-y-1">
             <h3 className="text-base font-bold text-brand-primary">No payment providers connected</h3>
             <p className="text-xs text-brand-secondary">
-              Connect your Stripe, Polar, RevenueCat, App Store Connect, Google Play, or Lemon Squeezy account to import live data.
+              Connect your Stripe, Polar, RevenueCat, Paddle, Gumroad, Creem, App Store Connect, Google Play, or Lemon Squeezy account to import live data.
             </p>
           </div>
           <button
@@ -233,12 +239,25 @@ export const ProvidersView: React.FC = () => {
                                     { id: "all", label: "Include Archived", badge: archivedProducts.length },
                                   ]}
                                   activeId={showArchived ? "all" : "active"}
-                                  onChange={(id) =>
-                                    setShowArchivedByProvider((prev) => ({
-                                      ...prev,
-                                      [provider.id]: id === "all",
-                                    }))
-                                  }
+                                  onChange={(id) => {
+                                    const isAll = id === "all";
+                                    setShowArchivedByProvider((prev) => {
+                                      const next = {
+                                        ...prev,
+                                        [provider.id]: isAll,
+                                        [provider.provider]: isAll,
+                                      };
+                                      LocalPreferences.set("showArchivedByProvider", next);
+                                      if (typeof window !== "undefined") {
+                                        window.dispatchEvent(
+                                          new CustomEvent("indic8_preferences_updated", {
+                                            detail: { key: "showArchivedByProvider" },
+                                          })
+                                        );
+                                      }
+                                      return next;
+                                    });
+                                  }}
                                 />
                               )}
 

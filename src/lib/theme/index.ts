@@ -1,9 +1,31 @@
 /**
  * Indic8 Unified Dynamic Theme System
  * 
- * Supports dynamic theme switching across 9 curated dark presets:
- * "slate" | "gray" | "zinc" | "neutral" | "stone" | "taupe" | "mauve" | "mist" | "olive"
+ * Supports dynamic theme switching across curated dark presets and dynamic Neutral Tailwind Accent themes:
+ * "slate" | "gray" | "zinc" | "stone" | "taupe" | "mauve" | "mist" | "olive" | "neutral" | `neutral-${TailwindAccentColor}`
  */
+
+export type TailwindAccentColor =
+  | "white"
+  | "red"
+  | "orange"
+  | "amber"
+  | "yellow"
+  | "lime"
+  | "green"
+  | "emerald"
+  | "teal"
+  | "cyan"
+  | "sky"
+  | "blue"
+  | "indigo"
+  | "violet"
+  | "purple"
+  | "fuchsia"
+  | "pink"
+  | "rose";
+
+export type NeutralDarkThemePreset = `neutral-${TailwindAccentColor}` | "neutral";
 
 export type DarkThemePreset =
   | "slate"
@@ -14,27 +36,241 @@ export type DarkThemePreset =
   | "taupe"
   | "mauve"
   | "mist"
-  | "olive";
+  | "olive"
+  | NeutralDarkThemePreset
+  | (string & {});
 
 export type LightThemePreset = "default";
+
+/**
+ * 💡 MASTER DEFAULT DARK THEME CONFIGURATION
+ * Change this ONE single constant to instantly switch the active dark theme style across the whole app:
+ * Examples: "neutral", "neutral-orange", "neutral-red", "neutral-lime", "neutral-blue", "stone", "zinc", etc.
+ */
+export const ACTIVE_DARK_THEME_KEYWORD: DarkThemePreset = "neutral-lime";
+export const ACTIVE_LIGHT_THEME_KEYWORD: LightThemePreset = "default";
 
 export interface ThemePresetOption {
   id: DarkThemePreset;
   label: string;
   sublabel: string;
   swatch: string; // Color preview dot
+  category?: "curated" | "neutral";
 }
 
+export interface TailwindAccentDef {
+  name: TailwindAccentColor;
+  label: string;
+  sublabel: string;
+  primary: string;     // 500
+  secondary: string;   // 600
+  bright: string;      // 400
+  glowRgba: string;    // glow rgba
+}
+
+/**
+ * Full Tailwind Color Accent Spectrum
+ */
+export const TAILWIND_ACCENTS: Record<TailwindAccentColor, TailwindAccentDef> = {
+  white: {
+    name: "white",
+    label: "White",
+    sublabel: "Titanium White",
+    primary: "#ffffff",
+    secondary: "#e5e5e5",
+    bright: "#ffffff",
+    glowRgba: "rgba(255, 255, 255, 0.18)",
+  },
+  red: {
+    name: "red",
+    label: "Red",
+    sublabel: "Crimson Red",
+    primary: "#ef4444",
+    secondary: "#dc2626",
+    bright: "#f87171",
+    glowRgba: "rgba(239, 68, 68, 0.22)",
+  },
+  orange: {
+    name: "orange",
+    label: "Orange",
+    sublabel: "Tangerine Orange",
+    primary: "#f97316",
+    secondary: "#ea580c",
+    bright: "#fb923c",
+    glowRgba: "rgba(249, 115, 22, 0.22)",
+  },
+  amber: {
+    name: "amber",
+    label: "Amber",
+    sublabel: "Warm Amber",
+    primary: "#f59e0b",
+    secondary: "#d97706",
+    bright: "#fbbf24",
+    glowRgba: "rgba(245, 158, 11, 0.22)",
+  },
+  yellow: {
+    name: "yellow",
+    label: "Yellow",
+    sublabel: "Canary Yellow",
+    primary: "#eab308",
+    secondary: "#ca8a04",
+    bright: "#facc15",
+    glowRgba: "rgba(234, 179, 8, 0.22)",
+  },
+  lime: {
+    name: "lime",
+    label: "Lime",
+    sublabel: "Electric Lime",
+    primary: "#84cc16",
+    secondary: "#65a30d",
+    bright: "#a3e635",
+    glowRgba: "rgba(132, 204, 22, 0.22)",
+  },
+  green: {
+    name: "green",
+    label: "Green",
+    sublabel: "Vibrant Green",
+    primary: "#22c55e",
+    secondary: "#16a34a",
+    bright: "#4ade80",
+    glowRgba: "rgba(34, 197, 94, 0.22)",
+  },
+  emerald: {
+    name: "emerald",
+    label: "Emerald",
+    sublabel: "Pure Emerald",
+    primary: "#10b981",
+    secondary: "#059669",
+    bright: "#34d399",
+    glowRgba: "rgba(16, 185, 129, 0.22)",
+  },
+  teal: {
+    name: "teal",
+    label: "Teal",
+    sublabel: "Deep Teal",
+    primary: "#14b8a6",
+    secondary: "#0d9488",
+    bright: "#2dd4bf",
+    glowRgba: "rgba(20, 184, 166, 0.22)",
+  },
+  cyan: {
+    name: "cyan",
+    label: "Cyan",
+    sublabel: "Bright Cyan",
+    primary: "#06b6d4",
+    secondary: "#0891b2",
+    bright: "#22d3ee",
+    glowRgba: "rgba(6, 182, 212, 0.22)",
+  },
+  sky: {
+    name: "sky",
+    label: "Sky",
+    sublabel: "Vivid Sky",
+    primary: "#0ea5e9",
+    secondary: "#0284c7",
+    bright: "#38bdf8",
+    glowRgba: "rgba(14, 165, 233, 0.22)",
+  },
+  blue: {
+    name: "blue",
+    label: "Blue",
+    sublabel: "Cobalt Blue",
+    primary: "#3b82f6",
+    secondary: "#2563eb",
+    bright: "#60a5fa",
+    glowRgba: "rgba(59, 130, 246, 0.22)",
+  },
+  indigo: {
+    name: "indigo",
+    label: "Indigo",
+    sublabel: "Deep Indigo",
+    primary: "#6366f1",
+    secondary: "#4f46e5",
+    bright: "#818cf8",
+    glowRgba: "rgba(99, 102, 241, 0.22)",
+  },
+  violet: {
+    name: "violet",
+    label: "Violet",
+    sublabel: "Ultra Violet",
+    primary: "#8b5cf6",
+    secondary: "#7c3aed",
+    bright: "#a78bfa",
+    glowRgba: "rgba(139, 92, 246, 0.22)",
+  },
+  purple: {
+    name: "purple",
+    label: "Purple",
+    sublabel: "Royal Purple",
+    primary: "#a855f7",
+    secondary: "#9333ea",
+    bright: "#c084fc",
+    glowRgba: "rgba(168, 85, 247, 0.22)",
+  },
+  fuchsia: {
+    name: "fuchsia",
+    label: "Fuchsia",
+    sublabel: "Neon Fuchsia",
+    primary: "#d946ef",
+    secondary: "#c026d3",
+    bright: "#e879f9",
+    glowRgba: "rgba(217, 70, 239, 0.22)",
+  },
+  pink: {
+    name: "pink",
+    label: "Pink",
+    sublabel: "Hot Pink",
+    primary: "#ec4899",
+    secondary: "#db2777",
+    bright: "#f472b6",
+    glowRgba: "rgba(236, 72, 153, 0.22)",
+  },
+  rose: {
+    name: "rose",
+    label: "Rose",
+    sublabel: "Ruby Rose",
+    primary: "#f43f5e",
+    secondary: "#e11d48",
+    bright: "#fb7185",
+    glowRgba: "rgba(244, 63, 94, 0.22)",
+  },
+};
+
+export const CURATED_DARK_THEME_OPTIONS: ThemePresetOption[] = [
+  { id: "zinc", label: "Zinc", sublabel: "Electric Indigo", swatch: "#6366f1", category: "curated" },
+  { id: "slate", label: "Slate", sublabel: "Sky Cobalt", swatch: "#0ea5e9", category: "curated" },
+  { id: "gray", label: "Gray", sublabel: "Emerald Graphite", swatch: "#10b981", category: "curated" },
+  { id: "stone", label: "Stone", sublabel: "Copper Orange", swatch: "#f97316", category: "curated" },
+  { id: "taupe", label: "Taupe", sublabel: "Champagne Amber", swatch: "#e59b4c", category: "curated" },
+  { id: "mauve", label: "Mauve", sublabel: "Velvet Orchid", swatch: "#a855f7", category: "curated" },
+  { id: "mist", label: "Mist", sublabel: "Arctic Aqua", swatch: "#06b6d4", category: "curated" },
+  { id: "olive", label: "Olive", sublabel: "Radiant Lime", swatch: "#84cc16", category: "curated" },
+];
+
+export const NEUTRAL_ACCENT_THEME_OPTIONS: ThemePresetOption[] = [
+  { id: "neutral", label: "Neutral", sublabel: "Titanium White", swatch: "#ffffff", category: "neutral" },
+  { id: "neutral-red", label: "Neutral Red", sublabel: "Crimson Red", swatch: "#ef4444", category: "neutral" },
+  { id: "neutral-orange", label: "Neutral Orange", sublabel: "Tangerine Orange", swatch: "#f97316", category: "neutral" },
+  { id: "neutral-amber", label: "Neutral Amber", sublabel: "Warm Amber", swatch: "#f59e0b", category: "neutral" },
+  { id: "neutral-yellow", label: "Neutral Yellow", sublabel: "Canary Yellow", swatch: "#eab308", category: "neutral" },
+  { id: "neutral-lime", label: "Neutral Lime", sublabel: "Electric Lime", swatch: "#84cc16", category: "neutral" },
+  { id: "neutral-green", label: "Neutral Green", sublabel: "Vibrant Green", swatch: "#22c55e", category: "neutral" },
+  { id: "neutral-emerald", label: "Neutral Emerald", sublabel: "Pure Emerald", swatch: "#10b981", category: "neutral" },
+  { id: "neutral-teal", label: "Neutral Teal", sublabel: "Deep Teal", swatch: "#14b8a6", category: "neutral" },
+  { id: "neutral-cyan", label: "Neutral Cyan", sublabel: "Bright Cyan", swatch: "#06b6d4", category: "neutral" },
+  { id: "neutral-sky", label: "Neutral Sky", sublabel: "Vivid Sky", swatch: "#0ea5e9", category: "neutral" },
+  { id: "neutral-blue", label: "Neutral Blue", sublabel: "Cobalt Blue", swatch: "#3b82f6", category: "neutral" },
+  { id: "neutral-indigo", label: "Neutral Indigo", sublabel: "Deep Indigo", swatch: "#6366f1", category: "neutral" },
+  { id: "neutral-violet", label: "Neutral Violet", sublabel: "Ultra Violet", swatch: "#8b5cf6", category: "neutral" },
+  { id: "neutral-purple", label: "Neutral Purple", sublabel: "Royal Purple", swatch: "#a855f7", category: "neutral" },
+  { id: "neutral-fuchsia", label: "Neutral Fuchsia", sublabel: "Neon Fuchsia", swatch: "#d946ef", category: "neutral" },
+  { id: "neutral-pink", label: "Neutral Pink", sublabel: "Hot Pink", swatch: "#ec4899", category: "neutral" },
+  { id: "neutral-rose", label: "Neutral Rose", sublabel: "Ruby Rose", swatch: "#f43f5e", category: "neutral" },
+];
+
 export const DARK_THEME_OPTIONS: ThemePresetOption[] = [
-  { id: "zinc", label: "Zinc", sublabel: "Deep Obsidian", swatch: "#18181b" },
-  { id: "slate", label: "Slate", sublabel: "Cool Blue-Gray", swatch: "#1e293b" },
-  { id: "gray", label: "Gray", sublabel: "Classic Monochrome", swatch: "#1f2937" },
-  { id: "neutral", label: "Neutral", sublabel: "Pure Pitch Dark", swatch: "#262626" },
-  { id: "stone", label: "Stone", sublabel: "Warm Mineral", swatch: "#292524" },
-  { id: "taupe", label: "Taupe", sublabel: "Beige Amber Glow", swatch: "#2c2825" },
-  { id: "mauve", label: "Mauve", sublabel: "Velvet Violet", swatch: "#262230" },
-  { id: "mist", label: "Mist", sublabel: "Oceanic Dusk", swatch: "#1d2833" },
-  { id: "olive", label: "Olive", sublabel: "Forest Botanical", swatch: "#22281e" },
+  ...NEUTRAL_ACCENT_THEME_OPTIONS,
+  ...CURATED_DARK_THEME_OPTIONS,
 ];
 
 export interface ThemeTokens {
@@ -165,9 +401,95 @@ export const LIGHT_THEMES: Record<LightThemePreset, ThemeTokens> = {
 };
 
 /**
- * 9 DARK THEME PRESETS
+ * Dynamic Factory for Neutral Base + Any Tailwind Accent
  */
-export const DARK_THEMES: Record<DarkThemePreset, ThemeTokens> = {
+export function createNeutralTheme(accentInput: TailwindAccentDef | TailwindAccentColor | string): ThemeTokens {
+  let accent: TailwindAccentDef;
+
+  if (typeof accentInput === "object" && accentInput !== null) {
+    accent = accentInput;
+  } else {
+    const key = String(accentInput).replace(/^neutral-/, "") as TailwindAccentColor;
+    accent = TAILWIND_ACCENTS[key] || TAILWIND_ACCENTS.white;
+  }
+
+  const hexToRgb = (hex: string) => {
+    const clean = hex.replace("#", "");
+    if (clean.length === 6) {
+      const num = parseInt(clean, 16);
+      return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+    }
+    return "255, 255, 255";
+  };
+
+  const rgb = hexToRgb(accent.primary);
+
+  return {
+    background: "#070707",
+    foreground: "#fafafa",
+    brand: {
+      primary: "#fafafa",
+      secondary: "#a1a1a1",
+      muted: "#6b6b6b",
+      disabled: "#424242",
+      dark: "#d4d4d4",
+      darker: "#e5e5e5",
+      darkest: "#ffffff",
+    },
+    surface: {
+      canvas: "#070707",
+      sidebar: "#0c0c0c",
+      base: "#121212",
+      subtle: "#171717",
+      light: "#1e1e1e",
+      gray: "#242424",
+      ghost: "#151515",
+      tabActive: "#141414",
+      goldLight: "#20180e",
+    },
+    border: {
+      default: "#1d1d1d",
+      slate: "#242424",
+      light: "#222222",
+      hover: "#333333",
+      muted: "#141414",
+      highlight: "#2d2d2d",
+      shadow: "#000000",
+      orangeLight: "#351508",
+    },
+    accent: {
+      primary: accent.primary,
+      secondary: accent.secondary,
+      bright: accent.bright,
+      glow: accent.glowRgba,
+      chartStroke: accent.primary,
+      chartGradientStart: `rgba(${rgb}, 0.28)`,
+      chartGradientEnd: `rgba(${rgb}, 0.0)`,
+      chartGrid: "rgba(255, 255, 255, 0.06)",
+      chartAxis: "#737373",
+    },
+    status: {
+      success: "#22c55e",
+      successLight: "#052e16",
+      danger: "#ef4444",
+      warning: "#f59e0b",
+      premium: "#eab308",
+      premiumLight: "#3f2e06",
+      orangeDark: "#ea580c",
+      orangeLightBg: "#3c1508",
+      orangePrimary: "#f97316",
+      bronze: "#d97706",
+      dangerSubtle: "#450a0a",
+      dangerSubtler: "#260606",
+      blueLight: "#172554",
+    },
+  };
+}
+
+/**
+ * 9 BASE CURATED DARK THEME PRESETS + DYNAMIC PRESETS
+ */
+export const DARK_THEMES: Record<string, ThemeTokens> = {
   // 1. ZINC
   zinc: {
     background: "#09090b",
@@ -203,13 +525,13 @@ export const DARK_THEMES: Record<DarkThemePreset, ThemeTokens> = {
       orangeLight: "#431d0a",
     },
     accent: {
-      primary: "#3b82f6",
-      secondary: "#2563eb",
-      bright: "#60a5fa",
-      glow: "rgba(59, 130, 246, 0.2)",
-      chartStroke: "#3b82f6",
-      chartGradientStart: "rgba(59, 130, 246, 0.28)",
-      chartGradientEnd: "rgba(59, 130, 246, 0.0)",
+      primary: "#6366f1",
+      secondary: "#4f46e5",
+      bright: "#818cf8",
+      glow: "rgba(99, 102, 241, 0.22)",
+      chartStroke: "#6366f1",
+      chartGradientStart: "rgba(99, 102, 241, 0.28)",
+      chartGradientEnd: "rgba(99, 102, 241, 0.0)",
       chartGrid: "rgba(255, 255, 255, 0.05)",
       chartAxis: "#71717a",
     },
@@ -265,13 +587,13 @@ export const DARK_THEMES: Record<DarkThemePreset, ThemeTokens> = {
       orangeLight: "#43220f",
     },
     accent: {
-      primary: "#38bdf8",
+      primary: "#0ea5e9",
       secondary: "#0284c7",
-      bright: "#7dd3fc",
-      glow: "rgba(56, 189, 248, 0.22)",
-      chartStroke: "#38bdf8",
-      chartGradientStart: "rgba(56, 189, 248, 0.28)",
-      chartGradientEnd: "rgba(56, 189, 248, 0.0)",
+      bright: "#38bdf8",
+      glow: "rgba(14, 165, 233, 0.22)",
+      chartStroke: "#0ea5e9",
+      chartGradientStart: "rgba(14, 165, 233, 0.28)",
+      chartGradientEnd: "rgba(14, 165, 233, 0.0)",
       chartGrid: "rgba(255, 255, 255, 0.05)",
       chartAxis: "#64748b",
     },
@@ -327,13 +649,13 @@ export const DARK_THEMES: Record<DarkThemePreset, ThemeTokens> = {
       orangeLight: "#43210d",
     },
     accent: {
-      primary: "#2f81f7",
-      secondary: "#1f6feb",
-      bright: "#58a6ff",
-      glow: "rgba(47, 129, 247, 0.2)",
-      chartStroke: "#2f81f7",
-      chartGradientStart: "rgba(47, 129, 247, 0.28)",
-      chartGradientEnd: "rgba(47, 129, 247, 0.0)",
+      primary: "#10b981",
+      secondary: "#059669",
+      bright: "#34d399",
+      glow: "rgba(16, 185, 129, 0.22)",
+      chartStroke: "#10b981",
+      chartGradientStart: "rgba(16, 185, 129, 0.28)",
+      chartGradientEnd: "rgba(16, 185, 129, 0.0)",
       chartGrid: "rgba(255, 255, 255, 0.05)",
       chartAxis: "#8b949e",
     },
@@ -354,67 +676,8 @@ export const DARK_THEMES: Record<DarkThemePreset, ThemeTokens> = {
     },
   },
 
-  // 4. NEUTRAL
-  neutral: {
-    background: "#0a0a0a",
-    foreground: "#fafafa",
-    brand: {
-      primary: "#fafafa",
-      secondary: "#a3a3a3",
-      muted: "#737373",
-      disabled: "#525252",
-      dark: "#d4d4d4",
-      darker: "#e5e5e5",
-      darkest: "#ffffff",
-    },
-    surface: {
-      canvas: "#0a0a0a",
-      sidebar: "#111111",
-      base: "#171717",
-      subtle: "#1f1f1f",
-      light: "#262626",
-      gray: "#2e2e2e",
-      ghost: "#212121",
-      tabActive: "#1c1c1c",
-      goldLight: "#261d12",
-    },
-    border: {
-      default: "#262626",
-      slate: "#2e2e2e",
-      light: "#2a2a2a",
-      hover: "#3d3d3d",
-      muted: "#1a1a1a",
-      highlight: "#383838",
-      shadow: "#000000",
-      orangeLight: "#401c0a",
-    },
-    accent: {
-      primary: "#ffffff",
-      secondary: "#e5e5e5",
-      bright: "#ffffff",
-      glow: "rgba(255, 255, 255, 0.18)",
-      chartStroke: "#ffffff",
-      chartGradientStart: "rgba(255, 255, 255, 0.25)",
-      chartGradientEnd: "rgba(255, 255, 255, 0.0)",
-      chartGrid: "rgba(255, 255, 255, 0.06)",
-      chartAxis: "#737373",
-    },
-    status: {
-      success: "#22c55e",
-      successLight: "#052e16",
-      danger: "#ef4444",
-      warning: "#f59e0b",
-      premium: "#eab308",
-      premiumLight: "#3f2e06",
-      orangeDark: "#ea580c",
-      orangeLightBg: "#3c1508",
-      orangePrimary: "#f97316",
-      bronze: "#d97706",
-      dangerSubtle: "#450a0a",
-      dangerSubtler: "#260606",
-      blueLight: "#172554",
-    },
-  },
+  // 4. NEUTRAL (Default Titanium White)
+  neutral: createNeutralTheme("white"),
 
   // 5. STONE
   stone: {
@@ -725,16 +988,30 @@ export const DARK_THEMES: Record<DarkThemePreset, ThemeTokens> = {
       blueLight: "#1E3A8A",
     },
   },
+
+  // Dynamic Neutral Tailwind Accents
+  "neutral-white": createNeutralTheme("white"),
+  "neutral-red": createNeutralTheme("red"),
+  "neutral-orange": createNeutralTheme("orange"),
+  "neutral-amber": createNeutralTheme("amber"),
+  "neutral-yellow": createNeutralTheme("yellow"),
+  "neutral-lime": createNeutralTheme("lime"),
+  "neutral-green": createNeutralTheme("green"),
+  "neutral-emerald": createNeutralTheme("emerald"),
+  "neutral-teal": createNeutralTheme("teal"),
+  "neutral-cyan": createNeutralTheme("cyan"),
+  "neutral-sky": createNeutralTheme("sky"),
+  "neutral-blue": createNeutralTheme("blue"),
+  "neutral-indigo": createNeutralTheme("indigo"),
+  "neutral-violet": createNeutralTheme("violet"),
+  "neutral-purple": createNeutralTheme("purple"),
+  "neutral-fuchsia": createNeutralTheme("fuchsia"),
+  "neutral-pink": createNeutralTheme("pink"),
+  "neutral-rose": createNeutralTheme("rose"),
 };
 
 /**
- * 💡 MASTER DEFAULT THEME CONFIGURATION KEYWORD
- */
-export const ACTIVE_DARK_THEME_KEYWORD: DarkThemePreset = "stone";
-export const ACTIVE_LIGHT_THEME_KEYWORD: LightThemePreset = "default";
-
-/**
- * Retrieve the active ThemeTokens object
+ * Retrieve the active ThemeTokens object dynamically
  */
 export function getThemeTokens(
   isDark: boolean,
@@ -742,13 +1019,23 @@ export function getThemeTokens(
   lightPreset: LightThemePreset = ACTIVE_LIGHT_THEME_KEYWORD
 ): ThemeTokens {
   if (isDark) {
-    return DARK_THEMES[darkPreset] || DARK_THEMES.zinc;
+    if (darkPreset in DARK_THEMES) {
+      return DARK_THEMES[darkPreset];
+    }
+    // Dynamic matching for any neutral-${color} syntax
+    if (typeof darkPreset === "string" && darkPreset.startsWith("neutral-")) {
+      const accentKey = darkPreset.replace("neutral-", "") as TailwindAccentColor;
+      if (accentKey in TAILWIND_ACCENTS) {
+        return createNeutralTheme(accentKey);
+      }
+    }
+    return DARK_THEMES[ACTIVE_DARK_THEME_KEYWORD] || DARK_THEMES.neutral || DARK_THEMES.stone;
   }
   return LIGHT_THEMES[lightPreset] || LIGHT_THEMES.default;
 }
 
 /**
- * Generate CSS variable map to inject into :root or .dark DOM
+ * Generate complete CSS variable map to inject into :root or .dark DOM
  */
 export function generateCssVariables(tokens: ThemeTokens): Record<string, string> {
   return {
@@ -782,6 +1069,9 @@ export function generateCssVariables(tokens: ThemeTokens): Record<string, string
     "--color-border-shadow": tokens.border.shadow,
     "--color-border-orange-light": tokens.border.orangeLight,
 
+    "--color-canvas-dots": tokens.border.slate,
+    "--color-canvas-stroke": tokens.border.light,
+
     "--color-accent-primary": tokens.accent.primary,
     "--color-accent-bright": tokens.accent.bright,
     "--color-accent-glow": tokens.accent.glow,
@@ -790,6 +1080,24 @@ export function generateCssVariables(tokens: ThemeTokens): Record<string, string
     "--color-chart-gradient-end": tokens.accent.chartGradientEnd,
     "--color-chart-grid": tokens.accent.chartGrid,
     "--color-chart-axis": tokens.accent.chartAxis,
+
+    "--color-status-success": tokens.status.success,
+    "--color-status-success-light": tokens.status.successLight,
+    "--color-status-danger": tokens.status.danger,
+    "--color-status-warning": tokens.status.warning,
+    "--color-status-premium": tokens.status.premium,
+    "--color-status-premium-light": tokens.status.premiumLight,
+    "--color-status-orange-dark": tokens.status.orangeDark,
+    "--color-status-orange-light-bg": tokens.status.orangeLightBg,
+    "--color-status-orange-primary": tokens.status.orangePrimary,
+    "--color-status-bronze": tokens.status.bronze,
+    "--color-status-danger-subtle": tokens.status.dangerSubtle,
+    "--color-status-danger-subtler": tokens.status.dangerSubtler,
+    "--color-status-blue-light": tokens.status.blueLight,
+
+    "--color-folder-bg": tokens.surface.base,
+    "--color-folder-hover": tokens.surface.subtle,
+    "--color-folder-border-hover": tokens.border.hover,
   };
 }
 
@@ -799,7 +1107,8 @@ export function generateCssVariables(tokens: ThemeTokens): Record<string, string
 export function applyThemeToDocument(isDark: boolean, darkPreset?: DarkThemePreset) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  const tokens = getThemeTokens(isDark, darkPreset);
+  const preset = darkPreset || ACTIVE_DARK_THEME_KEYWORD;
+  const tokens = getThemeTokens(isDark, preset);
   const vars = generateCssVariables(tokens);
 
   if (isDark) {
@@ -814,4 +1123,3 @@ export function applyThemeToDocument(isDark: boolean, darkPreset?: DarkThemePres
     root.style.setProperty(key, val);
   }
 }
-

@@ -653,30 +653,30 @@ export const PROVIDER_CAPABILITY_MATRIX: Record<
     },
   ],
 
-  creem: (caps) => [
+  gumroad: (caps) => [
     {
       key: "supportsRevenue",
-      label: "Revenue & Sales",
+      label: "Sales & Net Revenue",
       isGranted: caps?.supportsRevenue ?? true,
       status: "granted",
-      statusText: "Creem MoR Checkout Sales",
+      statusText: "Gumroad Creator Sales",
       howToGrant: {
-        title: "Grant Creem API Access",
+        title: "Grant Gumroad API Access",
         steps: [
-          "Open Creem Dashboard > Developer Settings > API Keys.",
-          "Generate an API Key with read permissions.",
+          "Go to Gumroad Dashboard > Settings > Advanced.",
+          "Under Applications, create an Access Token with read permissions.",
         ],
       },
     },
     {
       key: "supportsSubscriptions",
-      label: "Recurring Subscriptions",
+      label: "Memberships & Subscriptions",
       isGranted: caps?.supportsSubscriptions ?? true,
       status: "granted",
-      statusText: "Creem Recurring Plans",
+      statusText: "Recurring Memberships",
       howToGrant: {
-        title: "Subscriptions",
-        steps: ["Synced from Creem Subscriptions API."],
+        title: "Gumroad Memberships",
+        steps: ["Synced via Gumroad Subscribers API."],
       },
     },
     {
@@ -684,32 +684,32 @@ export const PROVIDER_CAPABILITY_MATRIX: Record<
       label: "MRR Normalization",
       isGranted: caps?.supportsMRR ?? true,
       status: "granted",
-      statusText: "Live Recurring MRR",
+      statusText: "Normalized Gumroad MRR",
       howToGrant: {
         title: "MRR Calculations",
-        steps: ["Computed continuously from active recurring billing plans."],
+        steps: ["Computed continuously from active monthly/annual recurring tiers."],
       },
     },
     {
       key: "supportsCustomers",
-      label: "Customer Records",
+      label: "Buyer & Customer Profiles",
       isGranted: caps?.supportsCustomers ?? true,
       status: "granted",
       statusText: "Customer Names & Emails",
       howToGrant: {
-        title: "Customer Profiles",
-        steps: ["Imported from Creem Customers endpoint."],
+        title: "Customer Records",
+        steps: ["Extracted from Gumroad sales orders and subscribers."],
       },
     },
     {
       key: "supportsRefunds",
-      label: "Refund Tracking",
+      label: "Refunds & Chargebacks",
       isGranted: caps?.supportsRefunds ?? true,
       status: "granted",
-      statusText: "Creem Disputed & Refunded Orders",
+      statusText: "Disputes & Partial Refunds",
       howToGrant: {
         title: "Refunds",
-        steps: ["Tracked via Creem Orders ledger."],
+        steps: ["Tracked via Gumroad sales ledger."],
       },
     },
     {
@@ -717,10 +717,82 @@ export const PROVIDER_CAPABILITY_MATRIX: Record<
       label: "Buyer Countries",
       isGranted: caps?.supportsCountries ?? true,
       status: "granted",
-      statusText: "Geographic Tax Localization",
+      statusText: "Global Buyer Geographies",
       howToGrant: {
         title: "Geographies",
-        steps: ["Extracted from checkout customer localization data."],
+        steps: ["Derived from buyer billing localization data."],
+      },
+    },
+  ],
+
+  creem: (caps) => [
+    {
+      key: "supportsRevenue",
+      label: "Revenue & Orders",
+      isGranted: caps?.supportsRevenue ?? true,
+      status: "granted",
+      statusText: "Creem Merchant of Record Sales",
+      howToGrant: {
+        title: "Grant Creem API Access",
+        steps: [
+          "Open Creem Dashboard > Developers > API Keys.",
+          "Copy your API Key and paste it into Indic8.",
+        ],
+      },
+    },
+    {
+      key: "supportsSubscriptions",
+      label: "Subscriptions",
+      isGranted: caps?.supportsSubscriptions ?? true,
+      status: "granted",
+      statusText: "Recurring Billing Plans",
+      howToGrant: {
+        title: "Creem Subscriptions",
+        steps: ["Synced via Creem Subscriptions API."],
+      },
+    },
+    {
+      key: "supportsMRR",
+      label: "MRR Telemetry",
+      isGranted: caps?.supportsMRR ?? true,
+      status: "granted",
+      statusText: "Normalized Creem MRR",
+      howToGrant: {
+        title: "MRR Calculations",
+        steps: ["Computed continuously from active recurring subscription intervals."],
+      },
+    },
+    {
+      key: "supportsCustomers",
+      label: "Customer Profiles",
+      isGranted: caps?.supportsCustomers ?? true,
+      status: "granted",
+      statusText: "Customer Names & Emails",
+      howToGrant: {
+        title: "Customer Records",
+        steps: ["Imported from Creem Customers API."],
+      },
+    },
+    {
+      key: "supportsRefunds",
+      label: "Disputes & Refunds",
+      isGranted: caps?.supportsRefunds ?? true,
+      status: "granted",
+      statusText: "Refund Tracking & Volume",
+      howToGrant: {
+        title: "Refunds",
+        steps: ["Accounted for in Creem tax & dispute settlement ledgers."],
+      },
+    },
+    {
+      key: "supportsCountries",
+      label: "Buyer Countries",
+      isGranted: caps?.supportsCountries ?? true,
+      status: "granted",
+      statusText: "Global Tax & Buyer Geographies",
+      howToGrant: {
+        title: "Geographies",
+        steps: ["Derived from Creem checkout billing location data."],
       },
     },
   ],

@@ -14,6 +14,7 @@ export type ProviderId =
   | "lemonsqueezy"
   | "dodopayments"
   | "paddle"
+  | "gumroad"
   | "creem";
 
 export type ConnectionStatus = "connected" | "disconnected" | "syncing" | "error" | "unconfigured" | "active";
