@@ -41,7 +41,17 @@ export const TooltipDot: React.FC<TooltipDotProps> = ({
       pointerEvents="none"
       className={className}
     >
-      {/* Primary Value Line Dot on Curve */}
+      {/* 1. Baseline Axis Dot with exact theme surface border on the horizontal axis */}
+      <motion.circle
+        style={{ cx: springX }}
+        cy={innerHeight}
+        r={isLight ? 5 : 4}
+        fill={axisDotColor}
+        stroke={bgStroke}
+        strokeWidth={isLight ? 2.5 : 2}
+      />
+
+      {/* 2. Primary Value Line Dot on Curve */}
       <motion.circle
         style={{
           cx: springX,
